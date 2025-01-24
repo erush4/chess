@@ -9,13 +9,15 @@ import java.util.Collection;
  * signature of the existing methods.
  */
 public class ChessPiece {
+    PieceType type;
+    ChessGame.TeamColor teamColor;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+        this.teamColor = pieceColor;
+        this.type = type;
     }
 
-    /**
-     * The various different chess piece options
-     */
+    //The various different chess piece options
     public enum PieceType {
         KING,
         QUEEN,
@@ -25,18 +27,14 @@ public class ChessPiece {
         PAWN
     }
 
-    /**
-     * @return Which team this chess piece belongs to
-     */
+    //@return Which team this chess piece belongs to
     public ChessGame.TeamColor getTeamColor() {
-        throw new RuntimeException("Not implemented");
+        return teamColor;
     }
 
-    /**
-     * @return which type of chess piece this piece is
-     */
+    //@return which type of chess piece this piece is
     public PieceType getPieceType() {
-        throw new RuntimeException("Not implemented");
+        return type;
     }
 
     /**
