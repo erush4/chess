@@ -3,7 +3,7 @@ package chess;
 import java.util.Objects;
 
 /**
- * Represents a single square position on a chess board
+ * Represents a single square position on a chess board, indexed from 1 to 8
  * <p>
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
@@ -22,7 +22,6 @@ public class ChessPosition {
     public int hashCode() {
         return Objects.hash(row, col);
     }
-
     public ChessPosition(int row, int col) {
         this.row = row;
         this.col = col;
