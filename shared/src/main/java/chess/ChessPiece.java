@@ -76,15 +76,8 @@ public class ChessPiece {
                 blockable, so should be calculated recursively
                  */
             case PAWN:
-                /*
-                Pawns:
-                can move forward UP TO two spaces on the first turn, then one space on all following turns
-                can move one space forward diagonal (one each direction)
-                promote to another piece on reaching the opposite side
-                 */
+                calculator = new PawnMoveCalculator(board, myPosition);
         }
-
-
 
         /*
         bishops: can move in two directions: an equivalent number of spaces in each

@@ -16,12 +16,16 @@ public class KnightMoveCalculator extends ChessMoveCalculator {
     public void calculateMove(ChessBoard board, ChessPosition start) {
         for (int i = 1; i <= 2; i++){
             int j = 3 - i; // forces an L shape (over 1, across 2, regardless of which way)
+
             for (int i2 = -i; i2 <= i; i2 += (2*i)){ //checks both directions on the row
                 for (int j2 = -j; j2 <= j; j2 += (2*j)){ //checks both directions on the column
+
                     int row = start.getRow() + i2;
                     int column = start.getColumn() + j2;
+
                     if ( row > 0 && row <= 8 && column > 0 && column <= 8) {//ensures new position is in bounds
                         ChessPosition newPosition = new ChessPosition(row, column);
+
                         if (board.getPiece(newPosition).getTeamColor() != board.getPiece(start).getTeamColor()) { // ensures that a piece of the same color is not taken
                             ChessMove newMove = new ChessMove(start, newPosition, null);
                             super.addMove(newMove);
