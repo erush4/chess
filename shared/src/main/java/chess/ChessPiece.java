@@ -68,13 +68,7 @@ public class ChessPiece {
             case KNIGHT:
                 calculator  = new KnightMoveCalculator(board, myPosition);
             case ROOK:
-                /*
-                Rooks:
-                can move any number of spaces in one direction until they hit a piece
-                if the piece is the opposite color, can take (move onto that square)
-                if the piece is the same color, can move adjacent
-                blockable, so should be calculated recursively
-                 */
+                calculator = new RookMoveCalculator(board, myPosition);
             case PAWN:
                 calculator = new PawnMoveCalculator(board, myPosition);
         }
