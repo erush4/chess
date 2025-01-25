@@ -43,20 +43,21 @@ public class PawnMoveCalculator extends ChessMoveCalculator {
         }
         //checks advance, no capture move
         ChessPosition next = new ChessPosition(start.getRow() + ahead, start.getColumn());
+        ChessPiece nextSpace = board.getPiece(next);
         if (board.getPiece(next) == null) {
             newMove(start, next, lastRow);
         }
         //checks double move at start
         if (start.getRow() == initRow) {
             next = new ChessPosition(start.getRow() + (2 * ahead), start.getColumn());
-            if (board.getPiece(next) == null) {
+            if (nextSpace == null) {
                 newMove(start, next, lastRow);
             }
         }
         //checks diagonal capture moves
         for (int i = -1; i <= 1; i +=2){
             next = new ChessPosition(start.getRow() + ahead, start.getColumn() + i);
-            if (board.getPiece(next) != null && board.getPiece(next).getTeamColor() != board.getPiece(start).getTeamColor()) {
+            if (nextSpace != null && board.getPiece(next).getTeamColor() != board.getPiece(start).getTeamColor()) {
                 newMove(start, next, lastRow);
             }
         }

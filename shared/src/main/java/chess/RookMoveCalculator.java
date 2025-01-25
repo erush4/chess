@@ -32,10 +32,11 @@ public class RookMoveCalculator extends ChessMoveCalculator{
             return;
         }
         ChessPosition next = new ChessPosition(nextRow, here.getColumn());
-        if (board.getPiece(next) == null) {
+        ChessPiece nextSpace = board.getPiece(next);
+        if (nextSpace == null) {
             super.addMove(new ChessMove(this.start, next, null));
             rowMove(direction, next);
-        } else if (board.getPiece(next).getTeamColor() != board.getPiece(start).getTeamColor()) {
+        } else if (nextSpace.getTeamColor() != board.getPiece(start).getTeamColor()) {
             super.addMove(new ChessMove(this.start, next, null));
         }
     }
@@ -46,10 +47,11 @@ public class RookMoveCalculator extends ChessMoveCalculator{
             return;
         }
         ChessPosition next = new ChessPosition(here.getRow(), nextColumn);
-        if (board.getPiece(next) == null) {
+        ChessPiece nextSpace = board.getPiece(next);
+        if (nextSpace == null) {
             super.addMove(new ChessMove(this.start, next, null));
             columnMove(direction, next);
-        } else if (board.getPiece(next).getTeamColor() != board.getPiece(start).getTeamColor()) {
+        } else if (nextSpace.getTeamColor() != board.getPiece(start).getTeamColor()) {
             super.addMove(new ChessMove(this.start, next, null));
         }
     }

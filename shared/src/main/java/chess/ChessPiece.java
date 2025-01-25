@@ -13,7 +13,7 @@ public class ChessPiece {
     private final PieceType type;
     private final ChessGame.TeamColor teamColor;
 
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         this.teamColor = pieceColor;
         this.type = type;
     }
@@ -60,25 +60,25 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessMoveCalculator calculator;
+        ChessMoveCalculator calculator = null;
         switch (type) {
             case KING:
+                break;
             case QUEEN:
+                break;
             case BISHOP:
+                calculator = new BishopMoveCalculator(board, myPosition);
+                break;
             case KNIGHT:
                 calculator  = new KnightMoveCalculator(board, myPosition);
+                break;
             case ROOK:
                 calculator = new RookMoveCalculator(board, myPosition);
+                break;
             case PAWN:
                 calculator = new PawnMoveCalculator(board, myPosition);
+                break;
         }
-
-        /*
-        bishops: can move in two directions: an equivalent number of spaces in each
-        if the piece is the opposite color, can take
-        if the piece is the same color, cannot take
-        blockable, so should be calculated recursively
-         */
 
         /*
         Queen:
@@ -91,7 +91,7 @@ public class ChessPiece {
         can move the same as queen, but only one square
         cannot move into a threatened spot, but check has yet to be implemented
          */
-
-        throw new RuntimeException("Not implemented");
+        assert calculator != null;
+        return calculator.getMoves();
     }
 }
