@@ -60,39 +60,14 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessMoveCalculator calculator = null;
-        switch (type) {
-            case KING:
-                break;
-            case QUEEN:
-                calculator = new QueenMoveCalculator(board, myPosition);
-                break;
-            case BISHOP:
-                calculator = new BishopMoveCalculator(board, myPosition);
-                break;
-            case KNIGHT:
-                calculator  = new KnightMoveCalculator(board, myPosition);
-                break;
-            case ROOK:
-                calculator = new RookMoveCalculator(board, myPosition);
-                break;
-            case PAWN:
-                calculator = new PawnMoveCalculator(board, myPosition);
-                break;
-        }
-
-        /*
-        Queen:
-        can move the same as rooks and bishops combined
-        run both checks and see if the move works?
-         */
-
-        /*
-        King:
-        can move the same as queen, but only one square
-        cannot move into a threatened spot, but check has yet to be implemented
-         */
-        assert calculator != null;
+        ChessMoveCalculator calculator = switch (type) {
+            case KING -> new KingMoveCalculator(board, myPosition);
+            case QUEEN -> new QueenMoveCalculator(board, myPosition);
+            case BISHOP -> new BishopMoveCalculator(board, myPosition);
+            case KNIGHT -> new KnightMoveCalculator(board, myPosition);
+            case ROOK -> new RookMoveCalculator(board, myPosition);
+            case PAWN -> new PawnMoveCalculator(board, myPosition);
+        };
         return calculator.getMoves();
     }
 }
