@@ -8,6 +8,7 @@ public abstract class ChessMoveCalculator {
     public ChessMoveCalculator() {
         moves = new ArrayList<ChessMove>();
     }
+    public abstract void calculateMove(ChessBoard board, ChessPosition start);
     public void addMove(ChessMove move) {
         moves.add(move);
     }

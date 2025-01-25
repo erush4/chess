@@ -60,34 +60,31 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+        ChessMoveCalculator calculator;
         switch (type) {
             case KING:
             case QUEEN:
             case BISHOP:
             case KNIGHT:
+                calculator  = new KnightMoveCalculator(board, myPosition);
             case ROOK:
+                /*
+                Rooks:
+                can move any number of spaces in one direction until they hit a piece
+                if the piece is the opposite color, can take (move onto that square)
+                if the piece is the same color, can move adjacent
+                blockable, so should be calculated recursively
+                 */
             case PAWN:
+                /*
+                Pawns:
+                can move forward UP TO two spaces on the first turn, then one space on all following turns
+                can move one space forward diagonal (one each direction)
+                promote to another piece on reaching the opposite side
+                 */
         }
-        /*
-        Pawns:
-        can move forward UP TO two spaces on the first turn, then one space on all following turns
-        can move one space forward diagonal (one each direction)
-        promote to another piece on reaching the opposite side
-         */
 
-        /*
-        Rooks:
-        can move any number of spaces in one direction until they hit a piece
-        if the piece is the opposite color, can take (move onto that square)
-        if the piece is the same color, can move adjacent
-        blockable, so should be calculated recursively
-         */
 
-        /*
-        Knights:
-        can move in two directions: one space in one direction, two spaces in another
-        unblockable, unless there is a piece of the same color at the final square
-         */
 
         /*
         bishops: can move in two directions: an equivalent number of spaces in each
