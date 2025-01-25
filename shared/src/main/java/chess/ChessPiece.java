@@ -106,5 +106,6 @@ public class ChessPiece {
          */
 
         throw new RuntimeException("Not implemented");
+        return calculator.getMoves();
     }
 }
