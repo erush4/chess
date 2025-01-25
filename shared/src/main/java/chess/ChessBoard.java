@@ -27,7 +27,7 @@ public class ChessBoard {
     }
 
     public ChessBoard() {
-        resetBoard(); // since it creates a new board, this will wipe the board and populate it with pieces
+        board = new ChessPiece[8][8];
     }
 
     /**
@@ -48,7 +48,7 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return board[position.getRow() - 1][position.getRow() - 1];
+        return this.board[position.getRow() - 1][position.getColumn() - 1];
     }
 
     /**

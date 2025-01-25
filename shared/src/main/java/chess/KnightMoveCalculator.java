@@ -20,12 +20,14 @@ public class KnightMoveCalculator extends ChessMoveCalculator {
                 for (int j2 = -j; j2 <= j; j2 += (2*j)){ //checks both directions on the column
                     int row = start.getRow() + i2;
                     int column = start.getColumn() + j2;
+                    if (row <= 0 || row > 8 || column <= 0 || column > 8) {
+                        continue;
+                    }
 
                     ChessPosition newPosition = new ChessPosition(row, column);
-                    boolean inBounds = row > 0 && row <= 8 && column > 0 && column <= 8;
-                    boolean otherTeam=board.getPiece(newPosition).getTeamColor()!= board.getPiece(start).getTeamColor();
+                    ChessPiece nextSpace = board.getPiece(newPosition);
 
-                    if (inBounds && otherTeam ) {//ensures new position is in bounds
+                    if (nextSpace == null || nextSpace.getTeamColor()!= board.getPiece(start).getTeamColor()) {
                         ChessMove newMove = new ChessMove(start, newPosition, null);
                         super.addMove(newMove);
                     }
