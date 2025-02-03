@@ -11,10 +11,9 @@ import java.util.Objects;
  */
 public class ChessPiece {
     private final PieceType type;
-    private final ChessGame.TeamColor teamColor;
-
+    private final ChessGame.TeamColor color;
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
-        this.teamColor = pieceColor;
+        color = pieceColor;
         this.type = type;
     }
 
@@ -24,15 +23,17 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return type == that.type && teamColor == that.teamColor;
+        return type == that.type && color == that.color;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, teamColor);
+        return Objects.hash(type, color);
     }
 
-    //The various different chess piece options
+    /**
+     * The various different chess piece options
+     */
     public enum PieceType {
         KING,
         QUEEN,
@@ -42,12 +43,16 @@ public class ChessPiece {
         PAWN
     }
 
-    //@return Which team this chess piece belongs to
+    /**
+     * @return Which team this chess piece belongs to
+     */
     public ChessGame.TeamColor getTeamColor() {
-        return teamColor;
+        return color;
     }
 
-    //@return which type of chess piece this piece is
+    /**
+     * @return which type of chess piece this piece is
+     */
     public PieceType getPieceType() {
         return type;
     }
@@ -60,14 +65,7 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessMoveCalculator calculator = switch (type) {
-            case KING -> new KingMoveCalculator(board, myPosition);
-            case QUEEN -> new QueenMoveCalculator(board, myPosition);
-            case BISHOP -> new BishopMoveCalculator(board, myPosition);
-            case KNIGHT -> new KnightMoveCalculator(board, myPosition);
-            case ROOK -> new RookMoveCalculator(board, myPosition);
-            case PAWN -> new PawnMoveCalculator(board, myPosition);
-        };
-        return calculator.getMoves();
+        MoveCalculator calc = new MoveCalculator(board, myPosition);
+        return calc.getValidMoves();
     }
 }
