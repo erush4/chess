@@ -49,10 +49,14 @@ public class ChessGame {
             case BLACK -> blackThreatens;
             case WHITE -> whiteThreatens;
         };
+        threatens = new HashSet<>();
         for(int i = 1; i <=8; i++){
             for (int j = 1; j <=8; j++){
-                ChessPiece piece = board.getPiece(new ChessPosition(i,j));
-                if ()
+                ChessPosition newPosition = new ChessPosition(i,j);
+                ChessPiece piece = board.getPiece(newPosition);
+                if (piece != null && piece.getTeamColor()!=color){
+                    threatens.add(newPosition);
+                }
             }
         }
     }
