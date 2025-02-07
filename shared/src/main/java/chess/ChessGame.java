@@ -19,6 +19,8 @@ public class ChessGame {
         teamTurn = TeamColor.WHITE;
         board = new ChessBoard();
         board.resetBoard();
+        updatesThreats(TeamColor.BLACK);
+        updatesThreats(TeamColor.WHITE);
     }
 
     /**
@@ -54,7 +56,7 @@ public class ChessGame {
             for (int j = 1; j <=8; j++){
                 ChessPosition newPosition = new ChessPosition(i,j);
                 ChessPiece piece = board.getPiece(newPosition);
-                if (piece != null && piece.getTeamColor()!=color){
+                if (piece != null && piece.getTeamColor()==color){
                     threatens.add(newPosition);
                 }
             }
@@ -150,7 +152,18 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        for(int i = 1; i <=8; i++){
+            for (int j = 1; j <=8; j++){
+                ChessPosition newPosition = new ChessPosition(i,j);
+                ChessPiece piece = board.getPiece(newPosition);
+                if (piece != null && piece.getTeamColor()== teamColor){
+                    if (validMoves(newPosition).isEmpty()){
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     /**
