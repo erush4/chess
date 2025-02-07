@@ -44,7 +44,18 @@ public class ChessGame {
         WHITE,
         BLACK
     }
-
+    private void updatesThreats(TeamColor color){
+        Collection<ChessPosition> threatens = switch (color) {
+            case BLACK -> blackThreatens;
+            case WHITE -> whiteThreatens;
+        };
+        for(int i = 1; i <=8; i++){
+            for (int j = 1; j <=8; j++){
+                ChessPiece piece = board.getPiece(new ChessPosition(i,j));
+                if ()
+            }
+        }
+    }
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -56,21 +67,31 @@ public class ChessGame {
         ChessPiece piece = board.getPiece(startPosition);
         Collection<ChessMove> validMoves = piece.pieceMoves(board, startPosition);
         TeamColor color = piece.getTeamColor();
+        TeamColor opponent;
         Collection<ChessPosition> threatens = switch (color) {
-            case WHITE -> blackThreatens;
-            case BLACK -> whiteThreatens;
+            case WHITE:
+                opponent = TeamColor.BLACK;
+                yield blackThreatens;
+            case BLACK:
+                opponent = TeamColor.WHITE;
+                yield whiteThreatens;
         };
         if (threatens.contains(startPosition)) {
-            for (ChessMove move : validMoves) {
+            for (Iterator<ChessMove> iterator = validMoves.iterator(); iterator.hasNext(); ) {
+                ChessMove move =  iterator.next();
                 ChessPosition endPosition = move.getEndPosition();
+                //tests the move
                 board.addPiece(startPosition, null);
                 board.addPiece(endPosition, piece);
+                updatesThreats(opponent);
                 if (isInCheck(color)) {
-                    validMoves.remove(move); //this might cause errors, make sure that removing move doesn't mess up the iterator
+                    iterator.remove();
                 }
+                //reverts back
                 board.addPiece(startPosition, piece);
                 board.addPiece(endPosition, null);
             }
+
         }
         return validMoves;
     }
