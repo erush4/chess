@@ -93,17 +93,18 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition kingHere = board.findKing(teamColor);
-        switch (teamColor){
+        switch (teamColor) {
             case WHITE:
-                if (kingHere == null || !blackThreatens.contains(kingHere)){
+                if (kingHere == null || !blackThreatens.contains(kingHere)) {
                     return false;
-            }
+                }
                 break;
             case BLACK:
-                if (kingHere == null || !blackThreatens.contains(kingHere)){
+                if (kingHere == null || !whiteThreatens.contains(kingHere)) {
                     return false;
-                break;
+                }
         }
+        return true;
     }
 
     /**
