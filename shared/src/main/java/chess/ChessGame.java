@@ -115,11 +115,8 @@ public class ChessGame {
                 ChessPosition newPosition = new ChessPosition(i, j); //gets every position on the board
                 ChessPiece piece = board.getPiece(newPosition);
                 if (piece != null && piece.getTeamColor() != teamColor) {
-                    for (ChessMove threat : board.getPiece(newPosition).pieceMoves(board, newPosition)) {
-                        ChessPiece possibleCapture = board.getPiece(threat.getEndPosition());
-                        if (possibleCapture != null && possibleCapture.getPieceType() == ChessPiece.PieceType.KING && possibleCapture.getTeamColor() == teamColor){
-                            return true;
-                        }
+                    if (threats(newPosition, teamColor)){
+                        return true;
                     }
                 }
             }
@@ -127,6 +124,16 @@ public class ChessGame {
         return false;
     }
 
+    private boolean threats (ChessPosition newPosition, TeamColor teamColor){
+        for (ChessMove threat : board.getPiece(newPosition).pieceMoves(board, newPosition)) {
+            ChessPiece possibleCapture = board.getPiece(threat.getEndPosition());
+            boolean kingThreatened = possibleCapture != null && possibleCapture.getPieceType()== ChessPiece.PieceType.KING;
+            if (kingThreatened && possibleCapture.getTeamColor() == teamColor){ //king threatened (same color)
+                return true;
+            }
+        }
+        return false;
+    }
     /**
      * Determines if the given team is in checkmate
      *
