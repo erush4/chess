@@ -39,18 +39,6 @@ public class ChessBoard {
         board[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
 
-    public ChessPosition findKing(ChessGame.TeamColor color){
-        ChessPiece king = new ChessPiece(color, ChessPiece.PieceType.KING);
-        for (int i = 0; i <8; i++){
-            for (int j = 0; j < 8; j++){
-                if (board[i][j] == king){
-                    return new ChessPosition(i +1, j+1);
-                }
-            }
-        }
-        return null;
-    }
-
     /**
      * Gets a chess piece on the chessboard
      *

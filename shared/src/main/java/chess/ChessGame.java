@@ -55,6 +55,7 @@ public class ChessGame {
         for (Iterator<ChessMove> iterator = validMoves.iterator(); iterator.hasNext(); ) {
                 ChessMove move =  iterator.next();
                 ChessPosition endPosition = move.getEndPosition();
+                ChessPiece spaceCapture = board.getPiece(endPosition);
                 //tests the move
                 board.addPiece(startPosition, null);
                 board.addPiece(endPosition, piece);
@@ -63,7 +64,7 @@ public class ChessGame {
                 }
                 //reverts back
                 board.addPiece(startPosition, piece);
-                board.addPiece(endPosition, null);
+                board.addPiece(endPosition, spaceCapture);
             }
         return validMoves;
     }
@@ -85,14 +86,14 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        ChessPosition kingHere = board.findKing(teamColor);
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <= 8; j++) {
-                ChessPosition newPosition = new ChessPosition(i, j);
+                ChessPosition newPosition = new ChessPosition(i, j); //gets every position on the board
                 ChessPiece piece = board.getPiece(newPosition);
                 if (piece != null && piece.getTeamColor() != teamColor) {
                     for (ChessMove threat : board.getPiece(newPosition).pieceMoves(board, newPosition)) {
-                        if (threat.getEndPosition()==kingHere){
+                        ChessPiece possibleCapture = board.getPiece(threat.getEndPosition());
+                        if (possibleCapture != null && possibleCapture.getPieceType() == ChessPiece.PieceType.KING && possibleCapture.getTeamColor() == teamColor){
                             return true;
                         }
                     }
