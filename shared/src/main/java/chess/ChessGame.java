@@ -12,10 +12,12 @@ import java.util.Iterator;
 public class ChessGame {
     TeamColor teamTurn;
     ChessBoard board;
+    ChessMove lastMove;
     public ChessGame() {
         teamTurn = TeamColor.WHITE;
         board = new ChessBoard();
         board.resetBoard();
+        lastMove = null;
     }
 
     /**
@@ -41,6 +43,7 @@ public class ChessGame {
         WHITE,
         BLACK
     }
+
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -78,14 +81,15 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece piece = board.getPiece(startPosition);
-        if (piece == null || piece.getTeamColor() != teamTurn) {
+        if (piece == null || piece.getTeamColor() != teamTurn) { //only move on your turn
             throw new InvalidMoveException();
         }
-        if (validMoves(startPosition).contains(move)){
-            if (move.getPromotionPiece() == null) {
-                board.addPiece(move.getEndPosition(), board.getPiece(startPosition));
-            } else {
-                ChessPiece promotionPiece = new ChessPiece(board.getPiece(startPosition).getTeamColor(), move.getPromotionPiece());
+        if (validMoves(startPosition).contains(move)){ //checks to make sure move is valid
+            if (move.getPromotionPiece() == null) { //normal move
+                board.addPiece(move.getEndPosition(), piece);
+                piece.incrementMoveCount();
+            } else { //pawn promotion
+                ChessPiece promotionPiece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
                 board.addPiece(move.getEndPosition(), promotionPiece);
             }
             board.addPiece(startPosition, null);
@@ -93,7 +97,8 @@ public class ChessGame {
                 case WHITE -> TeamColor.BLACK;
                 case BLACK -> TeamColor.WHITE;
             };
-        } else {
+            lastMove = move;
+        } else { //if move is not in validMoves
             throw new InvalidMoveException();
         }
     }
