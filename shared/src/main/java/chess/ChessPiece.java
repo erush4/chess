@@ -42,7 +42,6 @@ public class ChessPiece {
         ROOK,
         PAWN
     }
-
     /**
      * @return Which team this chess piece belongs to
      */
