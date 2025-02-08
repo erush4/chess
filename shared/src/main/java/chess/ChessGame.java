@@ -55,6 +55,7 @@ public class ChessGame {
         ChessPiece piece = board.getPiece(startPosition);
         Collection<ChessMove> validMoves = piece.pieceMoves(board, startPosition);
         TeamColor color = piece.getTeamColor();
+
         for (Iterator<ChessMove> iterator = validMoves.iterator(); iterator.hasNext(); ) {
                 ChessMove move =  iterator.next();
                 ChessPosition endPosition = move.getEndPosition();
@@ -87,7 +88,6 @@ public class ChessGame {
         if (validMoves(startPosition).contains(move)){ //checks to make sure move is valid
             if (move.getPromotionPiece() == null) { //normal move
                 board.addPiece(move.getEndPosition(), piece);
-                piece.incrementMoveCount();
             } else { //pawn promotion
                 ChessPiece promotionPiece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
                 board.addPiece(move.getEndPosition(), promotionPiece);
