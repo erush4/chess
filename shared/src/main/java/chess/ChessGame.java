@@ -77,9 +77,22 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPosition startPosition = move.getStartPosition();
+        ChessPiece piece = board.getPiece(startPosition);
+        if (piece == null || piece.getTeamColor() != teamTurn) {
+            throw new InvalidMoveException();
+        }
         if (validMoves(startPosition).contains(move)){
-            board.addPiece(move.getEndPosition(), board.getPiece(startPosition));
+            if (move.getPromotionPiece() == null) {
+                board.addPiece(move.getEndPosition(), board.getPiece(startPosition));
+            } else {
+                ChessPiece promotionPiece = new ChessPiece(board.getPiece(startPosition).getTeamColor(), move.getPromotionPiece());
+                board.addPiece(move.getEndPosition(), promotionPiece);
+            }
             board.addPiece(startPosition, null);
+            teamTurn= switch (teamTurn){
+                case WHITE -> TeamColor.BLACK;
+                case BLACK -> TeamColor.WHITE;
+            };
         } else {
             throw new InvalidMoveException();
         }
@@ -116,9 +129,24 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        return isInCheck(teamColor) && isInStalemate(teamColor);
+        return isInCheck(teamColor) && noMoves(teamColor);
     }
 
+    private boolean noMoves(TeamColor teamColor) {
+        boolean stalemate = true;
+        for(int i = 1; i <=8; i++){
+            for (int j = 1; j <=8; j++){
+                ChessPosition newPosition = new ChessPosition(i,j);
+                ChessPiece piece = board.getPiece(newPosition);
+                if (piece != null && piece.getTeamColor()== teamColor){
+                    if (!validMoves(newPosition).isEmpty()){
+                        stalemate = false;
+                    }
+                }
+            }
+        }
+        return stalemate;
+    }
     /**
      * Determines if the given team is in stalemate, which here is defined as having
      * no valid moves
@@ -127,18 +155,7 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        for(int i = 1; i <=8; i++){
-            for (int j = 1; j <=8; j++){
-                ChessPosition newPosition = new ChessPosition(i,j);
-                ChessPiece piece = board.getPiece(newPosition);
-                if (piece != null && piece.getTeamColor()== teamColor){
-                    if (validMoves(newPosition).isEmpty()){
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
+        return noMoves(teamColor) && !isInCheck(teamColor);
     }
 
     /**
