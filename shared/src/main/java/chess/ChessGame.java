@@ -1,7 +1,6 @@
 package chess;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 
 /**
@@ -13,14 +12,10 @@ import java.util.Iterator;
 public class ChessGame {
     TeamColor teamTurn;
     ChessBoard board;
-    HashSet<ChessPosition> whiteThreatens;
-    HashSet<ChessPosition> blackThreatens;
     public ChessGame() {
         teamTurn = TeamColor.WHITE;
         board = new ChessBoard();
         board.resetBoard();
-        updatesThreats(TeamColor.BLACK);
-        updatesThreats(TeamColor.WHITE);
     }
 
     /**
@@ -46,22 +41,6 @@ public class ChessGame {
         WHITE,
         BLACK
     }
-    private void updatesThreats(TeamColor color){
-        Collection<ChessPosition> threatens = switch (color) {
-            case BLACK -> blackThreatens;
-            case WHITE -> whiteThreatens;
-        };
-        threatens.clear();
-        for(int i = 1; i <=8; i++){
-            for (int j = 1; j <=8; j++){
-                ChessPosition newPosition = new ChessPosition(i,j);
-                ChessPiece piece = board.getPiece(newPosition);
-                if (piece != null && piece.getTeamColor()==color){
-                    threatens.add(newPosition);
-                }
-            }
-        }
-    }
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -73,23 +52,12 @@ public class ChessGame {
         ChessPiece piece = board.getPiece(startPosition);
         Collection<ChessMove> validMoves = piece.pieceMoves(board, startPosition);
         TeamColor color = piece.getTeamColor();
-        TeamColor opponent;
-        Collection<ChessPosition> threatens = switch (color) {
-            case WHITE:
-                opponent = TeamColor.BLACK;
-                yield blackThreatens;
-            case BLACK:
-                opponent = TeamColor.WHITE;
-                yield whiteThreatens;
-        };
-        if (threatens.contains(startPosition)) {
-            for (Iterator<ChessMove> iterator = validMoves.iterator(); iterator.hasNext(); ) {
+        for (Iterator<ChessMove> iterator = validMoves.iterator(); iterator.hasNext(); ) {
                 ChessMove move =  iterator.next();
                 ChessPosition endPosition = move.getEndPosition();
                 //tests the move
                 board.addPiece(startPosition, null);
                 board.addPiece(endPosition, piece);
-                updatesThreats(opponent);
                 if (isInCheck(color)) {
                     iterator.remove();
                 }
@@ -97,8 +65,6 @@ public class ChessGame {
                 board.addPiece(startPosition, piece);
                 board.addPiece(endPosition, null);
             }
-
-        }
         return validMoves;
     }
 
@@ -120,18 +86,20 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition kingHere = board.findKing(teamColor);
-        switch (teamColor) {
-            case WHITE:
-                if (kingHere == null || !blackThreatens.contains(kingHere)) {
-                    return false;
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPosition newPosition = new ChessPosition(i, j);
+                ChessPiece piece = board.getPiece(newPosition);
+                if (piece != null && piece.getTeamColor() != teamColor) {
+                    for (ChessMove threat : board.getPiece(newPosition).pieceMoves(board, newPosition)) {
+                        if (threat.getEndPosition()==kingHere){
+                            return true;
+                        }
+                    }
                 }
-                break;
-            case BLACK:
-                if (kingHere == null || !whiteThreatens.contains(kingHere)) {
-                    return false;
-                }
+            }
         }
-        return true;
+        return false;
     }
 
     /**
