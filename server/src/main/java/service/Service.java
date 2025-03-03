@@ -67,4 +67,16 @@ public class Service {
 
         return new LoginResponse(user.username(), authToken);
     }
+
+    public void logout(String authToken) throws ResponseException {
+        try{
+            AuthData authData= dataAccess.getAuth(authToken);
+            if (authData == null){
+                throw new ResponseException(401, "unauthorized");
+            }
+            dataAccess.deleteAuth(authData);
+        } catch (DataAccessException e) {
+            throw new ResponseException(500, "could not get data");
+        }
+    }
 }

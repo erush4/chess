@@ -14,6 +14,12 @@ public class ServiceUnitTests {
     static UserData existingUser;
     static UserData newUser;
 
+    private static String loginTestUser() throws ResponseException {
+        LoginRequest request = new LoginRequest(existingUser.username(), existingUser.password());
+        LoginResponse response= service.login(request);
+        return response.authToken();
+    }
+
     @BeforeAll
     static void init() {
         dataAccess = new MemoryDataAccess();
@@ -104,6 +110,27 @@ public class ServiceUnitTests {
     }
 
     @Test
+    @DisplayName("Logout User Succeeds")
+    void logoutUser() {
+        String authToken = null;
+        try {
+            authToken = loginTestUser();
+        } catch (ResponseException e) {
+            fail("test failed due to exception" + e.getMessage());
+        }
+        String finalAuthToken = authToken;
+        Assertions.assertDoesNotThrow(() -> service.logout(finalAuthToken));
+
+    }
+
+    @Test
+    @DisplayName("Logout With Bad Auth Fails")
+    void logoutBadUser() {
+        Assertions.assertThrows(ResponseException.class, () ->service.logout("bad token"));
+    }
+
+
+        @Test
     @DisplayName("Clear Removes All Data")
     void clearRemovesAllData() {
         try {
