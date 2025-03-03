@@ -30,16 +30,10 @@ public class Server {
         Spark.awaitStop();
     }
 
-    private Object clear(Request request, Response response) {
-        try {
-            service.clearData();
-        } catch (DataAccessException e) {
-            response.body(e.getMessage());
-            response.status(500);
-            return response;
-        }
+    private Object clear(Request request, Response response) throws DataAccessException{
+       service.clearData();
         response.status(200);
-        return response;
+        return "";
 
     }
 }
