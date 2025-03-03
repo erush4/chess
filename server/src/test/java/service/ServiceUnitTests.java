@@ -52,11 +52,45 @@ public class ServiceUnitTests {
             fail("test failed due to exception" + e.getMessage());
         }
     }
+
     @Test
-    @DisplayName("Cannot register same user twice")
+    @DisplayName("Register With Bad Request")
+    void registerBadRequest(){
+        RegisterRequest request = new RegisterRequest(newUser.username(), newUser.password(), null);
+        Assertions.assertThrows(ResponseException.class, () -> service.register(request), "Did not throw an exception");
+    }
+    @Test
+    @DisplayName("Prevent Registering Twice")
     void registerTwice(){
         RegisterRequest request = new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email());
         Assertions.assertThrows(ResponseException.class, () -> service.register(request), "Did not throw an exception");
+    }
+
+    @Test
+    @DisplayName("Login Existing User Succeeds")
+    void loginExistingUser(){
+        LoginRequest request = new LoginRequest(existingUser.username(), existingUser.password());
+        LoginResponse response = null;
+        try {
+            response = service.login(request);
+        } catch (ResponseException e) {
+            fail("test failed due to exception" + e.getMessage());
+        }
+        Assertions.assertNotNull(response.authToken());
+        Assertions.assertEquals(response.username(), existingUser.username());
+    }
+
+    @Test
+    @DisplayName("Login Existing User With Bad Password")
+    void loginBadPassword(){
+        LoginRequest request = new LoginRequest(existingUser.username(), "the wrong password");
+        Assertions.assertThrows(ResponseException.class, () -> service.login(request));
+    }
+    @Test
+    @DisplayName("Login Nonexistent User Fails")
+    void loginNonexistentUser(){
+        LoginRequest request = new LoginRequest(newUser.username(), newUser.password());
+        Assertions.assertThrows(ResponseException.class, () -> service.login(request));
     }
 
     @Test
@@ -71,7 +105,7 @@ public class ServiceUnitTests {
     }
 
     @Test
-    @DisplayName("Login fails after clear")
+    @DisplayName("Login Fails After Clear")
     void clearFailsLogin(){
     //TODO
     }
