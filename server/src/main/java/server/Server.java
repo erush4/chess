@@ -6,8 +6,6 @@ import model.*;
 import spark.*;
 import service.Service;
 
-import java.util.List;
-
 public class Server {
     private final Service service;
 
@@ -34,7 +32,7 @@ public class Server {
 
     private Object listGames(Request request, Response response) throws ResponseException{
         String authToken = new Gson().fromJson(request.headers("authorization"), String.class);
-        List<GameData> listGames= service.listGames(authToken);
+        ListGamesResponse listGames= service.listGames(authToken);
         return new Gson().toJson(listGames);
     }
 
