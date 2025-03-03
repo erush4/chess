@@ -1,4 +1,4 @@
 package model;
 
-public record RegisterResult(String userName, String authToken) {
+public record RegisterResult(String username, String authToken) {
 }
