@@ -18,7 +18,7 @@ public interface DataAccess {
 
     void getAuth(String authToken) throws DataAccessException;
 
-    List<ChessGame> listGames() throws DataAccessException;
+    List<GameData> listGames() throws DataAccessException;
 
     void addGame(GameData gameData) throws DataAccessException;
 
