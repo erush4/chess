@@ -8,7 +8,10 @@ import model.UserData;
 import java.util.List;
 
 public interface DataAccess {
+
     void clearData() throws DataAccessException;
+
+    void createUser(UserData userData) throws DataAccessException;
 
     UserData getUser(String username) throws DataAccessException;
 

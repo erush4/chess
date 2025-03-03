@@ -10,9 +10,7 @@ public class Service {
         this.dataAccess = dataAccess;
     }
 
-
     public void clearData() throws DataAccessException {
         dataAccess.clearData();
     }
-
 }

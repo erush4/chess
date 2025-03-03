@@ -1,6 +1,5 @@
 package dataAccess;
 
-import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -8,6 +7,7 @@ import model.UserData;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
 public class MemoryDataAccess implements DataAccess {
     final private HashMap<String, UserData> users = new HashMap<>();
@@ -15,9 +15,28 @@ public class MemoryDataAccess implements DataAccess {
     final private HashMap<Integer, GameData> games = new HashMap<>();
 
     @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MemoryDataAccess that = (MemoryDataAccess) o;
+        return Objects.equals(users, that.users) && Objects.equals(authDataSet, that.authDataSet) && Objects.equals(games, that.games);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(users, authDataSet, games);
+    }
+
+    @Override
     public void clearData() {
         users.clear();
         authDataSet.clear();
+    }
+
+    @Override
+    public void createUser(UserData userData) throws DataAccessException {
+
     }
 
     @Override

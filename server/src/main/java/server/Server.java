@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import dataAccess.DataAccessException;
+import dataAccess.MemoryDataAccess;
 import model.ErrorResult;
 import spark.*;
 import service.Service;
@@ -9,8 +10,8 @@ import service.Service;
 public class Server {
     private final Service service;
 
-    public Server(Service service){
-        this.service = service;
+    public Server(){
+        this.service = new Service(new MemoryDataAccess());
     }
     public int run(int desiredPort) {
         Spark.port(desiredPort);
