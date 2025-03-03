@@ -20,12 +20,20 @@ public class Server {
        Spark.delete("/db", this::clear);
        Spark.post("/user", this::register);
        Spark.post("/session", this::login);
+       Spark.delete("/session", this::logout);
        Spark.exception(ResponseException.class, this::exceptionHandler);
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
 
         Spark.awaitInitialization();
         return Spark.port();
+    }
+
+    private Object logout(Request request, Response response) throws ResponseException {
+        String authToken = new Gson().fromJson(request.headers("authorization"), String.class);
+        service.logout(authToken);
+        response.status(200);
+        return "";
     }
 
     private Object login(Request request, Response response) throws ResponseException {
@@ -53,7 +61,7 @@ public class Server {
     }
 
     private Object clear(Request request, Response response) throws ResponseException {
-            service.clearData();
+        service.clearData();
         response.status(200);
         return "";
 
