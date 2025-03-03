@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import dataAccess.DataAccessException;
+import model.ErrorResult;
 import spark.*;
 import service.Service;
 
@@ -30,8 +31,13 @@ public class Server {
         Spark.awaitStop();
     }
 
-    private Object clear(Request request, Response response) throws DataAccessException{
-       service.clearData();
+    private Object clear(Request request, Response response) {
+        try {
+            service.clearData();
+        } catch (DataAccessException e) {
+            response.status(500);
+            return new Gson().toJson(new ErrorResult(e.getMessage()));
+        }
         response.status(200);
         return "";
 
