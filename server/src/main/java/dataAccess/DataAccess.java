@@ -1,6 +1,5 @@
 package dataAccess;
 
-import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -19,7 +18,7 @@ public interface DataAccess {
 
     void deleteAuth(AuthData authData) throws DataAccessException;
 
-    void getAuth(String authToken) throws DataAccessException;
+    AuthData getAuth(String authToken) throws DataAccessException;
 
     List<GameData> listGames() throws DataAccessException;
 

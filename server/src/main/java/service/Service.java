@@ -3,6 +3,7 @@ package service;
 import dataAccess.DataAccessException;
 import dataAccess.DataAccess;
 import model.*;
+
 import java.util.UUID;
 
 public class Service {
@@ -22,15 +23,19 @@ public class Service {
 
     public RegisterResult register(RegisterRequest request) throws ResponseException {
         String authToken;
+        UserData user;
         if (request.username() == null || request.email() == null || request.password() == null) {
             throw new ResponseException(400, "bad request");
         }
         try {
-            UserData user = dataAccess.getUser(request.username());
-            if (user != null) {
-                throw new ResponseException(403, "already taken");
-            }
-
+            user = dataAccess.getUser(request.username());
+        } catch (DataAccessException e) {
+            throw new ResponseException(500, "something has gone terribly wrong");
+        }
+        if (user != null) {
+            throw new ResponseException(403, "already taken");
+        }
+        try {
             UserData newUser = new UserData(request.username(), request.password(), request.email());
             dataAccess.createUser(newUser);
             authToken = UUID.randomUUID().toString();
@@ -39,8 +44,6 @@ public class Service {
         } catch (DataAccessException e) {
             throw new ResponseException(500, "something has gone terribly wrong");
         }
-
-
         return new RegisterResult(request.username(), authToken);
     }
 }

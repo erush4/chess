@@ -41,6 +41,7 @@ public class ServiceUnitTests {
     public void setup(){
         try {
             dataAccess.createUser(existingUser);
+            dataAccess.createUser(newUser);
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }

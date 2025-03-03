@@ -5,13 +5,12 @@ import model.GameData;
 import model.UserData;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
 public class MemoryDataAccess implements DataAccess {
     final private HashMap<String, UserData> users = new HashMap<>();
-    final private HashSet<AuthData> authDataSet = new HashSet<>();
+    final private HashMap<String, AuthData> authDataSet = new HashMap<>();
     final private HashMap<Integer, GameData> games = new HashMap<>();
 
     @Override
@@ -32,31 +31,32 @@ public class MemoryDataAccess implements DataAccess {
     public void clearData() {
         users.clear();
         authDataSet.clear();
+        games.clear();
     }
 
     @Override
-    public void createUser(UserData userData) throws DataAccessException {
-
+    public void createUser(UserData userData){
+        users.put(userData.username(), userData);
     }
 
     @Override
     public UserData getUser(String username) {
-        return null;
+        return users.get(username);
     }
 
     @Override
     public void createAuth(AuthData authData) {
-
+        authDataSet.put(authData.authToken(), authData);
     }
 
     @Override
     public void deleteAuth(AuthData authData) {
-
+        authDataSet.remove(authData.authToken(), authData);
     }
 
     @Override
-    public void getAuth(String authToken) {
-
+    public AuthData getAuth(String authToken) {
+        return authDataSet.get(authToken);
     }
 
     @Override
