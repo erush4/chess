@@ -2,6 +2,7 @@ package service;
 
 import dataAccess.DataAccessException;
 import model.GameData;
+import model.ResponseException;
 import model.UserData;
 
 import dataAccess.DataAccess;
@@ -50,7 +51,7 @@ public class ServiceUnitTests {
     void clearRemovesAllData() {
         try {
             service.clearData();
-        } catch (DataAccessException e) {
+        } catch (ResponseException e) {
             fail("test failed due to exception:" + e.getMessage());
         }
         assert (Objects.equals(dataAccess, new MemoryDataAccess()));

@@ -1,9 +1,10 @@
 package server;
 
 import com.google.gson.Gson;
-import dataAccess.DataAccessException;
 import dataAccess.MemoryDataAccess;
-import model.ErrorResult;
+import model.RegisterRequest;
+import model.RegisterResult;
+import model.ResponseException;
 import spark.*;
 import service.Service;
 
@@ -19,7 +20,8 @@ public class Server {
         Spark.staticFiles.location("web");
 
        Spark.delete("/db", this::clear);
-
+       Spark.post("/user", this::register);
+       Spark.exception(ResponseException.class, this::exceptionHandler);
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
 
@@ -27,18 +29,27 @@ public class Server {
         return Spark.port();
     }
 
+    private Object exceptionHandler(ResponseException e, Request request, Response response) {
+        response.status(e.getStatusCode());
+        String message = e.toJson();
+        response.body(message);
+        return message;
+    }
+
+    private Object register(Request request, Response response) throws ResponseException {
+        RegisterRequest registerRequest= new Gson().fromJson(request.body(), RegisterRequest.class);
+
+        RegisterResult result= service.register(registerRequest);
+        return new Gson().toJson(result);
+    }
+
     public void stop() {
         Spark.stop();
         Spark.awaitStop();
     }
 
-    private Object clear(Request request, Response response) {
-        try {
+    private Object clear(Request request, Response response) throws ResponseException {
             service.clearData();
-        } catch (DataAccessException e) {
-            response.status(500);
-            return new Gson().toJson(new ErrorResult(e.getMessage()));
-        }
         response.status(200);
         return "";
 
