@@ -95,7 +95,7 @@ public class ServiceUnitTests {
     @Test
     @DisplayName("Login Fails With Bad Request")
     void loginBadRequest(){
-        LoginRequest request = new LoginRequest(null, null);
+        LoginRequest request = new LoginRequest(existingUser.username(), null);
         Assertions.assertThrows(ResponseException.class, () -> service.login(request));
     }
 
@@ -110,7 +110,7 @@ public class ServiceUnitTests {
     @DisplayName("Login Nonexistent User Fails")
     void loginNonexistentUser() {
         LoginRequest request = new LoginRequest(newUser.username(), newUser.password());
-        Assertions.assertThrows(ResponseException.class, () -> service.login(request));
+        Assertions.assertThrows(ResponseException.class, () -> service.login(request), "exception not thrown");
     }
 
     @Test
@@ -123,14 +123,14 @@ public class ServiceUnitTests {
             fail("test failed due to exception" + e.getMessage());
         }
         String finalAuthToken = authToken;
-        Assertions.assertDoesNotThrow(() -> service.logout(finalAuthToken));
+        Assertions.assertDoesNotThrow(() -> service.logout(finalAuthToken),"error thrown");
 
     }
 
     @Test
     @DisplayName("Logout With Bad Auth Fails")
     void logoutBadUser() {
-        Assertions.assertThrows(ResponseException.class, () ->service.logout("bad token"));
+        Assertions.assertThrows(ResponseException.class, () ->service.logout("bad token"),"exception not thrown");
     }
 
     @Test
@@ -138,7 +138,7 @@ public class ServiceUnitTests {
     void listGamesValid() {
         try {
             String authToken = loginTestUser();
-            Assertions.assertEquals(service.listGames(authToken), dataAccess.listGames());
+            Assertions.assertEquals(service.listGames(authToken), new ListGamesResponse(dataAccess.listGames()), "game lists not equal");
         } catch (Exception e) {
             fail("test failed due to exception:" + e.getMessage());
         }
@@ -147,7 +147,36 @@ public class ServiceUnitTests {
     @Test
     @DisplayName("List Games Rejects Invalid Auth")
     void listGamesBadToken(){
-        Assertions.assertThrows(ResponseException.class, () -> service.listGames("bad token"));
+        Assertions.assertThrows(ResponseException.class, () -> service.listGames("bad token"), "error not thrown");
+    }
+
+    @Test
+    @DisplayName("Create Game Makes Game")
+    void createValidGame(){
+        try {
+            String authToken = loginTestUser();
+            Integer id = service.createGame(authToken, "newGame");
+            Assertions.assertNotNull(id, "id returned null");
+        } catch (ResponseException e) {
+            fail("test failed due to exception:" + e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Create Game Without Name Fails")
+    void createGameNoName() {
+        try {
+            String authToken = loginTestUser();
+            Assertions.assertThrows(ResponseException.class, () ->service.createGame(authToken, null));
+        } catch (ResponseException e) {
+            fail("test failed due to exception:" + e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Create Game With Bad Auth Fails")
+    void createGameBadAuth() {
+        Assertions.assertThrows(ResponseException.class, () ->service.createGame("bad auth", "gameName"));
     }
 
         @Test
