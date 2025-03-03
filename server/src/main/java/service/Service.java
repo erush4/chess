@@ -4,6 +4,7 @@ import dataAccess.DataAccessException;
 import dataAccess.DataAccess;
 import model.*;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -75,6 +76,18 @@ public class Service {
                 throw new ResponseException(401, "unauthorized");
             }
             dataAccess.deleteAuth(authData);
+        } catch (DataAccessException e) {
+            throw new ResponseException(500, "could not get data");
+        }
+    }
+
+    public List<GameData> listGames(String authToken) throws ResponseException{
+        try{
+            AuthData authData = dataAccess.getAuth(authToken);
+            if (authData == null){
+                throw new ResponseException(401, "unauthorized");
+            }
+            return dataAccess.listGames();
         } catch (DataAccessException e) {
             throw new ResponseException(500, "could not get data");
         }

@@ -6,6 +6,8 @@ import model.*;
 import spark.*;
 import service.Service;
 
+import java.util.List;
+
 public class Server {
     private final Service service;
 
@@ -21,12 +23,19 @@ public class Server {
        Spark.post("/user", this::register);
        Spark.post("/session", this::login);
        Spark.delete("/session", this::logout);
+       Spark.get("/game", this::listGames);
        Spark.exception(ResponseException.class, this::exceptionHandler);
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
 
         Spark.awaitInitialization();
         return Spark.port();
+    }
+
+    private Object listGames(Request request, Response response) throws ResponseException{
+        String authToken = new Gson().fromJson(request.headers("authorization"), String.class);
+        List<GameData> listGames= service.listGames(authToken);
+        return new Gson().toJson(listGames);
     }
 
     private Object logout(Request request, Response response) throws ResponseException {

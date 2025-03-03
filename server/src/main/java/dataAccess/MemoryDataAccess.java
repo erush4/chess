@@ -4,6 +4,7 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -61,7 +62,7 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public List<GameData> listGames() {
-        return List.of();
+        return new ArrayList<>(games.values());
     }
 
     @Override

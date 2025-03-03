@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessGame;
 import dataAccess.DataAccessException;
 import model.*;
 
@@ -13,6 +14,7 @@ public class ServiceUnitTests {
     static DataAccess dataAccess;
     static UserData existingUser;
     static UserData newUser;
+    static GameData existingGame;
 
     private static String loginTestUser() throws ResponseException {
         LoginRequest request = new LoginRequest(existingUser.username(), existingUser.password());
@@ -27,6 +29,7 @@ public class ServiceUnitTests {
 
         existingUser = new UserData("ExistingUser", "existingUserPassword", "eu@mail.com");
         newUser = new UserData("NewUser", "newUserPassword", "nu@mail.com");
+        existingGame = new GameData(1, null, null, "existingGame", new ChessGame());
     }
 
     @AfterEach
@@ -43,6 +46,7 @@ public class ServiceUnitTests {
     public void setup() {
         try {
             service.register(new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email()));
+            dataAccess.addGame(existingGame);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -111,7 +115,7 @@ public class ServiceUnitTests {
 
     @Test
     @DisplayName("Logout User Succeeds")
-    void logoutUser() {
+    void logoutValidUser() {
         String authToken = null;
         try {
             authToken = loginTestUser();
@@ -129,6 +133,22 @@ public class ServiceUnitTests {
         Assertions.assertThrows(ResponseException.class, () ->service.logout("bad token"));
     }
 
+    @Test
+    @DisplayName("List Games Returns List")
+    void listGamesValid() {
+        try {
+            String authToken = loginTestUser();
+            Assertions.assertEquals(service.listGames(authToken), dataAccess.listGames());
+        } catch (Exception e) {
+            fail("test failed due to exception:" + e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("List Games Rejects Invalid Auth")
+    void listGamesBadToken(){
+        Assertions.assertThrows(ResponseException.class, () -> service.listGames("bad token"));
+    }
 
         @Test
     @DisplayName("Clear Removes All Data")
