@@ -1,14 +1,11 @@
 package service;
 
 import dataAccess.DataAccessException;
-import model.GameData;
-import model.ResponseException;
-import model.UserData;
+import model.*;
 
 import dataAccess.DataAccess;
 import dataAccess.MemoryDataAccess;
 import org.junit.jupiter.api.*;
-import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class ServiceUnitTests {
@@ -16,8 +13,6 @@ public class ServiceUnitTests {
     static DataAccess dataAccess;
     static UserData existingUser;
     static UserData newUser;
-    static GameData existingGame;
-    static GameData newGame;
 
     @BeforeAll
     static void init() {
@@ -40,11 +35,28 @@ public class ServiceUnitTests {
     @BeforeEach
     public void setup(){
         try {
-            dataAccess.createUser(existingUser);
-            dataAccess.createUser(newUser);
-        } catch (DataAccessException e) {
+            service.register(new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email()));
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+    @Test
+    @DisplayName("Register Adds a User")
+    void registerOneUser(){
+        try{
+            RegisterRequest request = new RegisterRequest(newUser.username(), newUser.password(), newUser.email());
+            service.register(request);
+            UserData thing = dataAccess.getUser("NewUser");
+            Assertions.assertEquals(thing, newUser, "Response did not contain the same UserData as expected");
+        } catch (Exception e) {
+            fail("test failed due to exception" + e.getMessage());
+        }
+    }
+    @Test
+    @DisplayName("Cannot register same user twice")
+    void registerTwice(){
+        RegisterRequest request = new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email());
+        Assertions.assertThrows(ResponseException.class, () -> service.register(request), "Did not throw an exception");
     }
 
     @Test
@@ -55,7 +67,7 @@ public class ServiceUnitTests {
         } catch (ResponseException e) {
             fail("test failed due to exception:" + e.getMessage());
         }
-        assert (Objects.equals(dataAccess, new MemoryDataAccess()));
+        Assertions.assertEquals(new MemoryDataAccess(), dataAccess, "Response still contained data");
     }
 
     @Test

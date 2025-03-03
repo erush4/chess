@@ -3,7 +3,6 @@ package service;
 import dataAccess.DataAccessException;
 import dataAccess.DataAccess;
 import model.*;
-
 import java.util.UUID;
 
 public class Service {
@@ -29,13 +28,9 @@ public class Service {
         }
         try {
             user = dataAccess.getUser(request.username());
-        } catch (DataAccessException e) {
-            throw new ResponseException(500, "something has gone terribly wrong");
-        }
-        if (user != null) {
-            throw new ResponseException(403, "already taken");
-        }
-        try {
+            if (user != null) {
+                throw new ResponseException(403, "already taken");
+            }
             UserData newUser = new UserData(request.username(), request.password(), request.email());
             dataAccess.createUser(newUser);
             authToken = UUID.randomUUID().toString();
