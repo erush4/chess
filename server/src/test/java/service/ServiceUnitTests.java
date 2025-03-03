@@ -155,8 +155,8 @@ public class ServiceUnitTests {
     void createValidGame(){
         try {
             String authToken = loginTestUser();
-            Integer id = service.createGame(authToken, "newGame");
-            Assertions.assertNotNull(id, "id returned null");
+            CreateGameResponse createGameResponse = service.createGame(authToken, new CreateGameRequest("gameName"));
+            Assertions.assertNotNull(createGameResponse, "game response returned null");
         } catch (ResponseException e) {
             fail("test failed due to exception:" + e.getMessage());
         }
@@ -167,7 +167,7 @@ public class ServiceUnitTests {
     void createGameNoName() {
         try {
             String authToken = loginTestUser();
-            Assertions.assertThrows(ResponseException.class, () ->service.createGame(authToken, null));
+            Assertions.assertThrows(ResponseException.class, () ->service.createGame(authToken, new CreateGameRequest(null)));
         } catch (ResponseException e) {
             fail("test failed due to exception:" + e.getMessage());
         }
@@ -176,10 +176,10 @@ public class ServiceUnitTests {
     @Test
     @DisplayName("Create Game With Bad Auth Fails")
     void createGameBadAuth() {
-        Assertions.assertThrows(ResponseException.class, () ->service.createGame("bad auth", "gameName"));
+        Assertions.assertThrows(ResponseException.class, () ->service.createGame("bad auth", new CreateGameRequest("gameName")));
     }
 
-        @Test
+    @Test
     @DisplayName("Clear Removes All Data")
     void clearRemovesAllData() {
         try {

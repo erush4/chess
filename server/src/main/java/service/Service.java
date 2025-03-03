@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public class Service {
     private final DataAccess dataAccess;
-
+    private int nextGameID = 1;
     private String createAuthData(String username) throws DataAccessException {
         String authToken = UUID.randomUUID().toString();
         AuthData newAuthData = new AuthData(authToken, username);
@@ -100,16 +100,17 @@ public class Service {
         }
     }
 
-    public Integer createGame(String authToken, String gameName) throws ResponseException {
+    public CreateGameResponse createGame(String authToken, CreateGameRequest createGameRequest) throws ResponseException {
+        String gameName = createGameRequest.gameName();
         if (gameName == null){
             throw new ResponseException(400, "bad request");
         }
         try{
             verifyAuthData(authToken);
-            int gameID = UUID.randomUUID().hashCode();
+            int gameID = nextGameID++;
             GameData game = new GameData(gameID, null, null, gameName, new ChessGame());
             dataAccess.addGame(game);
-            return gameID;
+            return new CreateGameResponse(gameID);
         } catch (DataAccessException e){
             throw new ResponseException(500, "could not get data");
         }

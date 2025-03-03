@@ -22,12 +22,19 @@ public class Server {
        Spark.post("/session", this::login);
        Spark.delete("/session", this::logout);
        Spark.get("/game", this::listGames);
+       Spark.post("/game", this::createGame);
        Spark.exception(ResponseException.class, this::exceptionHandler);
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
 
         Spark.awaitInitialization();
         return Spark.port();
+    }
+
+    private Object createGame(Request request, Response response) throws ResponseException {
+        String authToken = new Gson().fromJson(request.headers("authorization"), String.class);
+        CreateGameRequest gameRequest = new Gson().fromJson(request.body(), CreateGameRequest.class);
+        return new Gson().toJson(service.createGame(authToken, gameRequest));
     }
 
     private Object listGames(Request request, Response response) throws ResponseException{
