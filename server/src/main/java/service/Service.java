@@ -32,6 +32,9 @@ public class Service {
         UserData user;
         String authToken;
         try {
+            if (request.username() == null || request.email() == null || request.password() == null) {
+                throw new ResponseException(400, "bad request");
+            }
             user = dataAccess.getUser(request.username());
             if (user != null) {
                 throw new ResponseException(403, "already taken");
@@ -49,9 +52,12 @@ public class Service {
     public LoginResponse login(LoginRequest request) throws ResponseException{
         UserData user;
         String authToken;
+        if (request.username() == null || request.password() == null) {
+            throw new ResponseException(400, "bad request");
+        }
         try {
             user = dataAccess.getUser(request.username());
-            if (user.username() == null || !Objects.equals(user.password(), request.password())){
+            if (user == null || !Objects.equals(user.password(), request.password())){
                 throw new ResponseException(401, "unauthorized");
             }
             authToken = createAuthData(user.username());

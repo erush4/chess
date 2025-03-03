@@ -19,11 +19,12 @@ public class ServiceUnitTests {
         dataAccess = new MemoryDataAccess();
         service = new Service(dataAccess);
 
-        existingUser= new UserData("ExistingUser", "existingUserPassword", "eu@mail.com");
+        existingUser = new UserData("ExistingUser", "existingUserPassword", "eu@mail.com");
         newUser = new UserData("NewUser", "newUserPassword", "nu@mail.com");
     }
+
     @AfterEach
-    public void reset(){
+    public void reset() {
         try {
             dataAccess.clearData();
         } catch (DataAccessException e) {
@@ -33,17 +34,18 @@ public class ServiceUnitTests {
 
 
     @BeforeEach
-    public void setup(){
+    public void setup() {
         try {
             service.register(new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email()));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
     @Test
     @DisplayName("Register Adds a User")
-    void registerOneUser(){
-        try{
+    void registerOneUser() {
+        try {
             RegisterRequest request = new RegisterRequest(newUser.username(), newUser.password(), newUser.email());
             service.register(request);
             UserData thing = dataAccess.getUser("NewUser");
@@ -55,20 +57,21 @@ public class ServiceUnitTests {
 
     @Test
     @DisplayName("Register With Bad Request")
-    void registerBadRequest(){
+    void registerBadRequest() {
         RegisterRequest request = new RegisterRequest(newUser.username(), newUser.password(), null);
         Assertions.assertThrows(ResponseException.class, () -> service.register(request), "Did not throw an exception");
     }
+
     @Test
     @DisplayName("Prevent Registering Twice")
-    void registerTwice(){
+    void registerTwice() {
         RegisterRequest request = new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email());
         Assertions.assertThrows(ResponseException.class, () -> service.register(request), "Did not throw an exception");
     }
 
     @Test
     @DisplayName("Login Existing User Succeeds")
-    void loginExistingUser(){
+    void loginExistingUser() {
         LoginRequest request = new LoginRequest(existingUser.username(), existingUser.password());
         LoginResponse response = null;
         try {
@@ -79,16 +82,23 @@ public class ServiceUnitTests {
         Assertions.assertNotNull(response.authToken());
         Assertions.assertEquals(response.username(), existingUser.username());
     }
+    @Test
+    @DisplayName("Login Fails With Bad Request")
+    void loginBadRequest(){
+        LoginRequest request = new LoginRequest(null, null);
+        Assertions.assertThrows(ResponseException.class, () -> service.login(request));
+    }
 
     @Test
     @DisplayName("Login Existing User With Bad Password")
-    void loginBadPassword(){
+    void loginBadPassword() {
         LoginRequest request = new LoginRequest(existingUser.username(), "the wrong password");
         Assertions.assertThrows(ResponseException.class, () -> service.login(request));
     }
+
     @Test
     @DisplayName("Login Nonexistent User Fails")
-    void loginNonexistentUser(){
+    void loginNonexistentUser() {
         LoginRequest request = new LoginRequest(newUser.username(), newUser.password());
         Assertions.assertThrows(ResponseException.class, () -> service.login(request));
     }
@@ -102,11 +112,5 @@ public class ServiceUnitTests {
             fail("test failed due to exception:" + e.getMessage());
         }
         Assertions.assertEquals(new MemoryDataAccess(), dataAccess, "Response still contained data");
-    }
-
-    @Test
-    @DisplayName("Login Fails After Clear")
-    void clearFailsLogin(){
-    //TODO
     }
 }

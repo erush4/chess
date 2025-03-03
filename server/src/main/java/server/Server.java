@@ -30,9 +30,6 @@ public class Server {
 
     private Object login(Request request, Response response) throws ResponseException {
         LoginRequest loginRequest= new Gson().fromJson(request.body(), LoginRequest.class);
-        if (loginRequest.username() == null ||  loginRequest.password() == null) {
-            throw new ResponseException(400, "bad request");
-        }
         LoginResponse result = service.login(loginRequest);
         return new Gson().toJson(result);
     }
@@ -46,9 +43,6 @@ public class Server {
 
     private Object register(Request request, Response response) throws ResponseException {
         RegisterRequest registerRequest= new Gson().fromJson(request.body(), RegisterRequest.class);
-        if (registerRequest.username() == null || registerRequest.email() == null || registerRequest.password() == null) {
-            throw new ResponseException(400, "bad request");
-        }
         RegisterResponse result= service.register(registerRequest);
         return new Gson().toJson(result);
     }
