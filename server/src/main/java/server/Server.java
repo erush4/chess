@@ -23,12 +23,21 @@ public class Server {
        Spark.delete("/session", this::logout);
        Spark.get("/game", this::listGames);
        Spark.post("/game", this::createGame);
+       Spark.put("/game", this::joinGame);
        Spark.exception(ResponseException.class, this::exceptionHandler);
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
 
         Spark.awaitInitialization();
         return Spark.port();
+    }
+
+    private Object joinGame(Request request, Response response) throws ResponseException {
+        String authToken = new Gson().fromJson(request.headers("authorization"), String.class);
+        JoinGameRequest joinRequest = new Gson().fromJson(request.body(), JoinGameRequest.class);
+        service.joinGame(authToken, joinRequest);
+        response.status(200);
+        return "";
     }
 
     private Object createGame(Request request, Response response) throws ResponseException {
@@ -44,6 +53,7 @@ public class Server {
     }
 
     private Object logout(Request request, Response response) throws ResponseException {
+
         String authToken = new Gson().fromJson(request.headers("authorization"), String.class);
         service.logout(authToken);
         response.status(200);

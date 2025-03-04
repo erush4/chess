@@ -10,7 +10,6 @@ import java.util.UUID;
 
 public class Service {
     private final DataAccess dataAccess;
-    private int nextGameID = 1;
     private String createAuthData(String username) throws DataAccessException {
         String authToken = UUID.randomUUID().toString();
         AuthData newAuthData = new AuthData(authToken, username);
@@ -107,7 +106,7 @@ public class Service {
         }
         try{
             verifyAuthData(authToken);
-            int gameID = nextGameID++;
+            int gameID = Math.abs(UUID.randomUUID().hashCode());
             GameData game = new GameData(gameID, null, null, gameName, new ChessGame());
             dataAccess.addGame(game);
             return new CreateGameResponse(gameID);
@@ -118,7 +117,6 @@ public class Service {
 
     public void joinGame(String authToken, JoinGameRequest joinRequest) throws ResponseException {
         try {
-
             AuthData authData = verifyAuthData(authToken);
             int gameID = joinRequest.gameID();
             GameData game = dataAccess.getGame(gameID);
@@ -133,10 +131,10 @@ public class Service {
                     if (game.whiteUsername() != null) {
                         throw new ResponseException(403, "already taken");
                     }
-                    yield new GameData(gameID, userName, game.blackUserName(), game.gameName(), game.game());
+                    yield new GameData(gameID, userName, game.blackUsername(), game.gameName(), game.game());
                 }
                 case BLACK -> {
-                    if (game.blackUserName() != null) {
+                    if (game.blackUsername() != null) {
                         throw new ResponseException(403, "already taken");
                     }
                     yield new GameData(gameID, game.whiteUsername(), userName, game.gameName(), game.game());
