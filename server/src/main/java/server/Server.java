@@ -33,7 +33,7 @@ public class Server {
     }
 
     private Object joinGame(Request request, Response response) throws ResponseException {
-        String authToken = new Gson().fromJson(request.headers("authorization"), String.class);
+        String authToken = request.headers("authorization");
         JoinGameRequest joinRequest = new Gson().fromJson(request.body(), JoinGameRequest.class);
         service.joinGame(authToken, joinRequest);
         response.status(200);
@@ -41,20 +41,19 @@ public class Server {
     }
 
     private Object createGame(Request request, Response response) throws ResponseException {
-        String authToken = new Gson().fromJson(request.headers("authorization"), String.class);
+        String authToken = request.headers("authorization");
         CreateGameRequest gameRequest = new Gson().fromJson(request.body(), CreateGameRequest.class);
         return new Gson().toJson(service.createGame(authToken, gameRequest));
     }
 
     private Object listGames(Request request, Response response) throws ResponseException{
-        String authToken = new Gson().fromJson(request.headers("authorization"), String.class);
+        String authToken = request.headers("authorization");
         ListGamesResponse listGames= service.listGames(authToken);
         return new Gson().toJson(listGames);
     }
 
     private Object logout(Request request, Response response) throws ResponseException {
-
-        String authToken = new Gson().fromJson(request.headers("authorization"), String.class);
+        String authToken = request.headers("authorization");
         service.logout(authToken);
         response.status(200);
         return "";
