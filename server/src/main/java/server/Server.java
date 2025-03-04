@@ -1,7 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
-import dataAccess.MemoryDataAccess;
+import dataaccess.MemoryDataAccess;
 import model.*;
 import service.Service;
 import spark.Request;

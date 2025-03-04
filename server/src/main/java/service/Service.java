@@ -1,8 +1,8 @@
 package service;
 
 import chess.ChessGame;
-import dataAccess.DataAccess;
-import dataAccess.DataAccessException;
+import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import model.*;
 
 import java.util.Objects;
