@@ -12,6 +12,7 @@ public class ChessMove {
     private final ChessPosition start;
     private final ChessPosition end;
     private final ChessPiece.PieceType promotion;
+
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
         start = startPosition;

@@ -1,8 +1,8 @@
 package service;
 
 import chess.ChessGame;
-import dataAccess.DataAccessException;
 import dataAccess.DataAccess;
+import dataAccess.DataAccessException;
 import model.*;
 
 import java.util.Objects;
@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public class Service {
     private final DataAccess dataAccess;
+
     private String createAuthData(String username) throws DataAccessException {
         String authToken = UUID.randomUUID().toString();
         AuthData newAuthData = new AuthData(authToken, username);
@@ -62,7 +63,7 @@ public class Service {
         return new RegisterResponse(request.username(), authToken);
     }
 
-    public LoginResponse login(LoginRequest request) throws ResponseException{
+    public LoginResponse login(LoginRequest request) throws ResponseException {
         UserData user;
         String authToken;
         if (request.username() == null || request.password() == null) {
@@ -70,7 +71,7 @@ public class Service {
         }
         try {
             user = dataAccess.getUser(request.username());
-            if (user == null || !Objects.equals(user.password(), request.password())){
+            if (user == null || !Objects.equals(user.password(), request.password())) {
                 throw new ResponseException(401, "unauthorized");
             }
             authToken = createAuthData(user.username());
@@ -82,16 +83,16 @@ public class Service {
     }
 
     public void logout(String authToken) throws ResponseException {
-        try{
-            AuthData authData= verifyAuthData(authToken);
+        try {
+            AuthData authData = verifyAuthData(authToken);
             dataAccess.deleteAuth(authData);
         } catch (DataAccessException e) {
             throw new ResponseException(500, "could not get data");
         }
     }
 
-    public ListGamesResponse listGames(String authToken) throws ResponseException{
-        try{
+    public ListGamesResponse listGames(String authToken) throws ResponseException {
+        try {
             verifyAuthData(authToken);
             return new ListGamesResponse(dataAccess.listGames());
         } catch (DataAccessException e) {
@@ -101,16 +102,16 @@ public class Service {
 
     public CreateGameResponse createGame(String authToken, CreateGameRequest createGameRequest) throws ResponseException {
         String gameName = createGameRequest.gameName();
-        if (gameName == null){
+        if (gameName == null) {
             throw new ResponseException(400, "bad request");
         }
-        try{
+        try {
             verifyAuthData(authToken);
             int gameID = Math.abs(UUID.randomUUID().hashCode());
             GameData game = new GameData(gameID, null, null, gameName, new ChessGame());
             dataAccess.addGame(game);
             return new CreateGameResponse(gameID);
-        } catch (DataAccessException e){
+        } catch (DataAccessException e) {
             throw new ResponseException(500, "could not get data");
         }
     }
@@ -123,7 +124,7 @@ public class Service {
             ChessGame.TeamColor teamColor = joinRequest.playerColor();
             String userName = authData.username();
             GameData newGameData;
-            if (game == null || joinRequest.playerColor() == null){
+            if (game == null || joinRequest.playerColor() == null) {
                 throw new ResponseException(400, "bad request");
             }
             newGameData = switch (teamColor) {

@@ -12,6 +12,7 @@ import java.util.Objects;
 public class ChessPiece {
     private final PieceType type;
     private final ChessGame.TeamColor color;
+
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         color = pieceColor;
         this.type = type;
@@ -42,6 +43,7 @@ public class ChessPiece {
         ROOK,
         PAWN
     }
+
     /**
      * @return Which team this chess piece belongs to
      */

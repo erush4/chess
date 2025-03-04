@@ -18,32 +18,32 @@ public class MoveCalculator {
         this.start = start;
         color = piece.getTeamColor();
 
-        switch(type){
+        switch (type) {
             case KING:
-                championMoveCalculator(1,1,false);
-                championMoveCalculator(0,1,false);
-                championMoveCalculator(1,0,false);
+                championMoveCalculator(1, 1, false);
+                championMoveCalculator(0, 1, false);
+                championMoveCalculator(1, 0, false);
                 break;
             case QUEEN:
-                championMoveCalculator(0,1,true);
-                championMoveCalculator(1,0,true);
+                championMoveCalculator(0, 1, true);
+                championMoveCalculator(1, 0, true);
             case BISHOP:
-                championMoveCalculator(1,1,true);
+                championMoveCalculator(1, 1, true);
                 break;
             case ROOK:
-                championMoveCalculator(0,1,true);
-                championMoveCalculator(1,0,true);
+                championMoveCalculator(0, 1, true);
+                championMoveCalculator(1, 0, true);
                 break;
             case KNIGHT:
-                championMoveCalculator(2,1,false);
-                championMoveCalculator(1,2,false);
+                championMoveCalculator(2, 1, false);
+                championMoveCalculator(1, 2, false);
                 break;
             case PAWN:
                 pawnMoveCalculator();
         }
     }
 
-    private boolean outOfBounds(int line){
+    private boolean outOfBounds(int line) {
         return (line < 1 || line > 8);
     }
 
@@ -82,22 +82,22 @@ public class MoveCalculator {
         }
     }
 
-    private void recursiveCalculator(int rowMove, int colMove, ChessPosition here){
+    private void recursiveCalculator(int rowMove, int colMove, ChessPosition here) {
         int newRow = here.getRow() + rowMove;
         int newCol = here.getColumn() + colMove;
-        if (!outOfBounds(newRow) && !outOfBounds(newCol)){
+        if (!outOfBounds(newRow) && !outOfBounds(newCol)) {
             ChessPosition newMove = new ChessPosition(newRow, newCol);
             if (board.getPiece(newMove) == null) {
                 validMoves.add(new ChessMove(start, newMove, null));
                 recursiveCalculator(rowMove, colMove, newMove);
-            } else if (board.getPiece(newMove).getTeamColor() != color){
+            } else if (board.getPiece(newMove).getTeamColor() != color) {
                 validMoves.add(new ChessMove(start, newMove, null));
             }
         }
     }
 
     private void pawnPromotionCheck(int lastRow, ChessPosition newPosition) {
-        if (newPosition.getRow() == lastRow){
+        if (newPosition.getRow() == lastRow) {
             validMoves.add(new ChessMove(start, newPosition, ChessPiece.PieceType.KNIGHT));
             validMoves.add(new ChessMove(start, newPosition, ChessPiece.PieceType.BISHOP));
             validMoves.add(new ChessMove(start, newPosition, ChessPiece.PieceType.QUEEN));
@@ -130,7 +130,7 @@ public class MoveCalculator {
                 }
             }
         }
-        for (int i = -1; i <= 1; i+=2){
+        for (int i = -1; i <= 1; i += 2) {
             int newCol = start.getColumn() + i;
             if (!outOfBounds(newCol)) {
                 newPosition = new ChessPosition(newRow, newCol);
@@ -141,7 +141,7 @@ public class MoveCalculator {
         }
     }
 
-    public Collection<ChessMove> getValidMoves(){
+    public Collection<ChessMove> getValidMoves() {
         return validMoves;
     }
 }

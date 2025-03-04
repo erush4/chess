@@ -3,28 +3,31 @@ package server;
 import com.google.gson.Gson;
 import dataAccess.MemoryDataAccess;
 import model.*;
-import spark.*;
 import service.Service;
+import spark.Request;
+import spark.Response;
+import spark.Spark;
 
 public class Server {
     private final Service service;
 
-    public Server(){
+    public Server() {
         this.service = new Service(new MemoryDataAccess());
     }
+
     public int run(int desiredPort) {
         Spark.port(desiredPort);
 
         Spark.staticFiles.location("web");
 
-       Spark.delete("/db", this::clear);
-       Spark.post("/user", this::register);
-       Spark.post("/session", this::login);
-       Spark.delete("/session", this::logout);
-       Spark.get("/game", this::listGames);
-       Spark.post("/game", this::createGame);
-       Spark.put("/game", this::joinGame);
-       Spark.exception(ResponseException.class, this::exceptionHandler);
+        Spark.delete("/db", this::clear);
+        Spark.post("/user", this::register);
+        Spark.post("/session", this::login);
+        Spark.delete("/session", this::logout);
+        Spark.get("/game", this::listGames);
+        Spark.post("/game", this::createGame);
+        Spark.put("/game", this::joinGame);
+        Spark.exception(ResponseException.class, this::exceptionHandler);
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
 
@@ -46,9 +49,9 @@ public class Server {
         return new Gson().toJson(service.createGame(authToken, gameRequest));
     }
 
-    private Object listGames(Request request, Response response) throws ResponseException{
+    private Object listGames(Request request, Response response) throws ResponseException {
         String authToken = request.headers("authorization");
-        ListGamesResponse listGames= service.listGames(authToken);
+        ListGamesResponse listGames = service.listGames(authToken);
         return new Gson().toJson(listGames);
     }
 
@@ -60,7 +63,7 @@ public class Server {
     }
 
     private Object login(Request request, Response response) throws ResponseException {
-        LoginRequest loginRequest= new Gson().fromJson(request.body(), LoginRequest.class);
+        LoginRequest loginRequest = new Gson().fromJson(request.body(), LoginRequest.class);
         LoginResponse result = service.login(loginRequest);
         return new Gson().toJson(result);
     }
@@ -73,8 +76,8 @@ public class Server {
     }
 
     private Object register(Request request, Response response) throws ResponseException {
-        RegisterRequest registerRequest= new Gson().fromJson(request.body(), RegisterRequest.class);
-        RegisterResponse result= service.register(registerRequest);
+        RegisterRequest registerRequest = new Gson().fromJson(request.body(), RegisterRequest.class);
+        RegisterResponse result = service.register(registerRequest);
         return new Gson().toJson(result);
     }
 
