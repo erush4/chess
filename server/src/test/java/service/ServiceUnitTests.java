@@ -7,6 +7,8 @@ import model.*;
 import dataAccess.DataAccess;
 import dataAccess.MemoryDataAccess;
 import org.junit.jupiter.api.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class ServiceUnitTests {
@@ -16,8 +18,8 @@ public class ServiceUnitTests {
     static UserData newUser;
     static GameData existingGame;
 
-    private static String loginTestUser() throws ResponseException {
-        LoginRequest request = new LoginRequest(existingUser.username(), existingUser.password());
+    private static String loginTestUser(UserData user) throws ResponseException {
+        LoginRequest request = new LoginRequest(user.username(), user.password());
         LoginResponse response= service.login(request);
         return response.authToken();
     }
@@ -29,7 +31,7 @@ public class ServiceUnitTests {
 
         existingUser = new UserData("ExistingUser", "existingUserPassword", "eu@mail.com");
         newUser = new UserData("NewUser", "newUserPassword", "nu@mail.com");
-        existingGame = new GameData(1, null, null, "existingGame", new ChessGame());
+        existingGame = new GameData(-1, null, null, "existingGame", new ChessGame());
     }
 
     @AfterEach
@@ -118,7 +120,7 @@ public class ServiceUnitTests {
     void logoutValidUser() {
         String authToken = null;
         try {
-            authToken = loginTestUser();
+            authToken = loginTestUser(existingUser);
         } catch (ResponseException e) {
             fail("test failed due to exception" + e.getMessage());
         }
@@ -137,7 +139,7 @@ public class ServiceUnitTests {
     @DisplayName("List Games Returns List")
     void listGamesValid() {
         try {
-            String authToken = loginTestUser();
+            String authToken = loginTestUser(existingUser);
             Assertions.assertEquals(service.listGames(authToken), new ListGamesResponse(dataAccess.listGames()), "game lists not equal");
         } catch (Exception e) {
             fail("test failed due to exception:" + e.getMessage());
@@ -154,7 +156,7 @@ public class ServiceUnitTests {
     @DisplayName("Create Game Makes Game")
     void createValidGame(){
         try {
-            String authToken = loginTestUser();
+            String authToken = loginTestUser(existingUser);
             CreateGameResponse createGameResponse = service.createGame(authToken, new CreateGameRequest("gameName"));
             Assertions.assertNotNull(createGameResponse, "game response returned null");
         } catch (ResponseException e) {
@@ -166,7 +168,7 @@ public class ServiceUnitTests {
     @DisplayName("Create Game Without Name Fails")
     void createGameNoName() {
         try {
-            String authToken = loginTestUser();
+            String authToken = loginTestUser(existingUser);
             Assertions.assertThrows(ResponseException.class, () ->service.createGame(authToken, new CreateGameRequest(null)));
         } catch (ResponseException e) {
             fail("test failed due to exception:" + e.getMessage());
@@ -177,6 +179,71 @@ public class ServiceUnitTests {
     @DisplayName("Create Game With Bad Auth Fails")
     void createGameBadAuth() {
         Assertions.assertThrows(ResponseException.class, () ->service.createGame("bad auth", new CreateGameRequest("gameName")));
+    }
+
+    @Test
+    @DisplayName("Join Game Passes When Valid")
+    void joinGameValid(){
+        try {
+            String authToken = loginTestUser(existingUser);
+            JoinGameRequest joinRequest = new JoinGameRequest(ChessGame.TeamColor.WHITE, -1);
+            service.joinGame(authToken, joinRequest);
+            service.register(new RegisterRequest(newUser.username(), newUser.password(), newUser.email()));
+            authToken = loginTestUser(newUser);
+            joinRequest = new JoinGameRequest(ChessGame.TeamColor.BLACK, -1);
+            service.joinGame(authToken, joinRequest);
+            GameData actual = dataAccess.getGame(-1);
+            GameData expected = new GameData(-1, existingUser.username(), newUser.username(), "existingGame", existingGame.game());
+            Assertions.assertEquals(actual, expected);
+        } catch (Exception e) {
+            fail("test failed due to exception:" + e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Join Game Fails without Auth")
+    void joinGameBadAuth(){
+        try {
+            String authToken = "bad Auth";
+            JoinGameRequest joinRequest = new JoinGameRequest(ChessGame.TeamColor.WHITE, -1);
+            Assertions.assertThrows(ResponseException.class, () ->service.joinGame(authToken, joinRequest));
+        } catch (Exception e) {
+            fail("test failed due to exception:" + e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Join Game Rejects Two White Teams")
+    void joinGameSameTeam(){
+        try {
+            String authToken = loginTestUser(existingUser);
+            JoinGameRequest joinRequest = new JoinGameRequest(ChessGame.TeamColor.BLACK, -1);
+            service.joinGame(authToken, joinRequest);
+            service.register(new RegisterRequest(newUser.username(), newUser.password(), newUser.email()));
+            authToken = loginTestUser(newUser);
+            joinRequest = new JoinGameRequest(ChessGame.TeamColor.BLACK, -1);
+            String finalAuthToken = authToken;
+            JoinGameRequest finalJoinRequest = joinRequest;
+            Assertions.assertThrows(ResponseException.class, () ->service.joinGame(finalAuthToken, finalJoinRequest));
+        } catch (Exception e) {
+            fail("test failed due to exception:" + e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Join Game Fails with Bad Request")
+    void joinGameNullColor(){
+        try {
+            String authToken = loginTestUser(existingUser);
+            JoinGameRequest joinRequest = new JoinGameRequest(ChessGame.TeamColor.WHITE, 0);
+            JoinGameRequest finalJoinRequest1 = joinRequest;
+            Assertions.assertThrows(ResponseException.class, () ->service.joinGame(authToken, finalJoinRequest1));
+            joinRequest = new JoinGameRequest(null, 0);
+            JoinGameRequest finalJoinRequest = joinRequest;
+            Assertions.assertThrows(ResponseException.class, () ->service.joinGame(authToken, finalJoinRequest));
+        } catch (Exception e) {
+            fail("test failed due to exception:" + e.getMessage());
+        }
     }
 
     @Test

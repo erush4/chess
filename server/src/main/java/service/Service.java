@@ -115,4 +115,36 @@ public class Service {
             throw new ResponseException(500, "could not get data");
         }
     }
+
+    public void joinGame(String authToken, JoinGameRequest joinRequest) throws ResponseException {
+        try {
+
+            AuthData authData = verifyAuthData(authToken);
+            int gameID = joinRequest.gameID();
+            GameData game = dataAccess.getGame(gameID);
+            ChessGame.TeamColor teamColor = joinRequest.playerColor();
+            String userName = authData.username();
+            GameData newGameData;
+            if (game == null || joinRequest.playerColor() == null){
+                throw new ResponseException(400, "bad request");
+            }
+            newGameData = switch (teamColor) {
+                case WHITE -> {
+                    if (game.whiteUsername() != null) {
+                        throw new ResponseException(403, "already taken");
+                    }
+                    yield new GameData(gameID, userName, game.blackUserName(), game.gameName(), game.game());
+                }
+                case BLACK -> {
+                    if (game.blackUserName() != null) {
+                        throw new ResponseException(403, "already taken");
+                    }
+                    yield new GameData(gameID, game.whiteUsername(), userName, game.gameName(), game.game());
+                }
+            };
+            dataAccess.updateGame(newGameData);
+        } catch (DataAccessException e) {
+            throw new ResponseException(500, "could not get data");
+        }
+    }
 }
