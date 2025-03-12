@@ -26,7 +26,7 @@ public class Service {
             }
             return authData;
         } catch (DataAccessException e) {
-            throw new ResponseException(500, "could not get data");
+            throw new ResponseException(500, e.getMessage());
         }
     }
 
@@ -38,7 +38,7 @@ public class Service {
         try {
             dataAccess.clearData();
         } catch (DataAccessException e) {
-            throw new ResponseException(500, "could not get data");
+            throw new ResponseException(500, e.getMessage());
         }
     }
 
@@ -57,7 +57,7 @@ public class Service {
             dataAccess.createUser(newUser);
             authToken = createAuthData(request.username());
         } catch (DataAccessException e) {
-            throw new ResponseException(500, "could not get data");
+            throw new ResponseException(500, e.getMessage());
         }
 
         return new RegisterResponse(request.username(), authToken);
@@ -76,7 +76,7 @@ public class Service {
             }
             authToken = createAuthData(user.username());
         } catch (DataAccessException e) {
-            throw new ResponseException(500, "could not get data");
+            throw new ResponseException(500, e.getMessage());
         }
 
         return new LoginResponse(user.username(), authToken);
@@ -87,7 +87,7 @@ public class Service {
             AuthData authData = verifyAuthData(authToken);
             dataAccess.deleteAuth(authData);
         } catch (DataAccessException e) {
-            throw new ResponseException(500, "could not get data");
+            throw new ResponseException(500, e.getMessage());
         }
     }
 
@@ -96,7 +96,7 @@ public class Service {
             verifyAuthData(authToken);
             return new ListGamesResponse(dataAccess.listGames());
         } catch (DataAccessException e) {
-            throw new ResponseException(500, "could not get data");
+            throw new ResponseException(500, e.getMessage());
         }
     }
 
@@ -143,7 +143,7 @@ public class Service {
             };
             dataAccess.updateGame(newGameData);
         } catch (DataAccessException e) {
-            throw new ResponseException(500, "could not get data");
+            throw new ResponseException(500, e.getMessage());
         }
     }
 }
