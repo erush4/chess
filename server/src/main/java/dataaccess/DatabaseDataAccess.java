@@ -28,7 +28,18 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-    return null;
+        ResultSet rs = getData("SELECT username, passhash, email FROM users WHERE username=?", username);
+        try {
+            if (rs.next()) {
+                String gotUsername = rs.getString("username");
+                String passhash = rs.getString("gotPasshash");
+                String email = rs.getString("email");
+                return new UserData(gotUsername, passhash, email);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new DataAccessException("Could not get data: " + e.getMessage());
+        }
     }
 
     @Override
@@ -43,7 +54,17 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        return null;
+        ResultSet rs = getData("SELECT authtoken, username FROM authdata WHERE authtoken=?", authToken);
+        try {
+            if (rs.next()) {
+                String gotAuth = rs.getString("authtoken");
+                String username = rs.getString("username");
+                return new AuthData(gotAuth, username);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new DataAccessException("Could not get data: " + e.getMessage());
+        }
     }
 
     @Override
@@ -69,6 +90,7 @@ public class DatabaseDataAccess implements DataAccess {
     private void updateDatabase(String statement, Object... params) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                prepareStatement(ps, params);
                 ps.executeUpdate();
             }
         } catch (SQLException e) {
@@ -76,15 +98,28 @@ public class DatabaseDataAccess implements DataAccess {
         }
     }
 
-    private ResultSet getData(String statement) throws DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection()){
-            try (PreparedStatement ps = conn.prepareStatement(statement)){
-                try(ResultSet rs = ps.executeQuery()){
+    private ResultSet getData(String statement, Object... params) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                prepareStatement(ps, params);
+                try (ResultSet rs = ps.executeQuery()) {
                     return rs;
                 }
             }
         } catch (SQLException e) {
             throw new DataAccessException("Could not read data: " + e.getMessage());
+        }
+    }
+
+    private void prepareStatement(PreparedStatement ps, Object[] params) throws SQLException, DataAccessException {
+        for (int i = 0; i < params.length; i++) {
+            Object param = params[i];
+            switch (param) {
+                case Integer p -> ps.setInt(i + 1, p);
+                case String p -> ps.setString(i + 1, p);
+                case null -> ps.setNull(i + 1, NULL);
+                default -> throw new DataAccessException("Bad parameter type: " + param.getClass().getName());
+            }
         }
     }
 
