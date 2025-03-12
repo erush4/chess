@@ -17,7 +17,9 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void clearData() throws DataAccessException {
-
+        updateDatabase("TRUNCATE TABLE users");
+        updateDatabase("TRUNCATE TABLE games");
+        updateDatabase("TRUNCATE TABLE authdata");
     }
 
     @Override
