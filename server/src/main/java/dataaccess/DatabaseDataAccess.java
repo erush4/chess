@@ -56,17 +56,22 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-        ResultSet rs = getData("SELECT * FROM users WHERE username=?", username);
-        try {
-            if (rs.next()) {
-                String gotUsername = rs.getString("username");
-                String passhash = rs.getString("passhash");
-                String email = rs.getString("email");
-                return new UserData(gotUsername, passhash, email);
+        String statement = "SELECT * FROM users WHERE username=?";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                prepareStatement(ps, username);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        String gotUsername = rs.getString("username");
+                        String passhash = rs.getString("passhash");
+                        String email = rs.getString("email");
+                        return new UserData(gotUsername, passhash, email);
+                    }
+                    return null;
+                }
             }
-            return null;
         } catch (SQLException e) {
-            throw new DataAccessException("Could not get data: " + e.getMessage());
+            throw new DataAccessException("Could not read data: " + e.getMessage());
         }
     }
 
@@ -84,35 +89,44 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        ResultSet rs = getData("SELECT * FROM authdata WHERE authtoken=?", authToken);
-        try {
-            if (rs.next()) {
-                String gotAuth = rs.getString("authtoken");
-                String username = rs.getString("username");
-                return new AuthData(gotAuth, username);
+        String statement = "SELECT * FROM authdata WHERE authtoken=?";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                prepareStatement(ps, authToken);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        String gotAuth = rs.getString("authtoken");
+                        String username = rs.getString("username");
+                        return new AuthData(gotAuth, username);
+                    }
+                    return null;
+                }
             }
-            return null;
         } catch (SQLException e) {
-            throw new DataAccessException("Could not get data: " + e.getMessage());
+            throw new DataAccessException("Could not read data: " + e.getMessage());
         }
     }
 
     @Override
     public List<GameData> listGames() throws DataAccessException {
         ArrayList<GameData> gameList = new ArrayList<>();
-        ResultSet rs = getData("SELECT * FROM games");
-        try {
-            while (rs.next()) {
-                int gotGameID = rs.getInt("gameid");
-                String whiteUsername = rs.getString("whiteusername");
-                String blackUsername = rs.getString("blackusername");
-                String gameName = rs.getString("gamename");
-                String gameJSON = rs.getString("gamejson");
-                ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
-                gameList.add(new GameData(gotGameID, whiteUsername, blackUsername, gameName, game));
+        String statement = "SELECT * FROM games";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        int gotGameID = rs.getInt("gameid");
+                        String whiteUsername = rs.getString("whiteusername");
+                        String blackUsername = rs.getString("blackusername");
+                        String gameName = rs.getString("gamename");
+                        String gameJSON = rs.getString("gamejson");
+                        ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
+                        gameList.add(new GameData(gotGameID, whiteUsername, blackUsername, gameName, game));
+                    }
+                }
             }
         } catch (SQLException e) {
-            throw new DataAccessException("Could not get data: " + e.getMessage());
+            throw new DataAccessException("Could not read data: " + e.getMessage());
         }
         return gameList;
     }
@@ -130,20 +144,25 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
-        ResultSet rs = getData("SELECT * FROM authdata WHERE gameId=?", gameID);
-        try {
-            if (rs.next()) {
-                int gotGameID = rs.getInt("gameid");
-                String whiteUsername = rs.getString("whiteusername");
-                String blackUsername = rs.getString("blackusername");
-                String gameName = rs.getString("gamename");
-                String gameJSON = rs.getString("gamejson");
-                ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
-                return new GameData(gotGameID, whiteUsername, blackUsername, gameName, game);
+        String statement = "SELECT * FROM games WHERE gameid=?";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                prepareStatement(ps, gameID);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        int gotGameID = rs.getInt("gameid");
+                        String whiteUsername = rs.getString("whiteusername");
+                        String blackUsername = rs.getString("blackusername");
+                        String gameName = rs.getString("gamename");
+                        String gameJSON = rs.getString("gamejson");
+                        ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
+                        return new GameData(gotGameID, whiteUsername, blackUsername, gameName, game);
+                    }
+                    return null;
+                }
             }
-            return null;
         } catch (SQLException e) {
-            throw new DataAccessException("Could not get data: " + e.getMessage());
+            throw new DataAccessException("Could not read data: " + e.getMessage());
         }
     }
 
@@ -168,20 +187,7 @@ public class DatabaseDataAccess implements DataAccess {
         }
     }
 
-    private ResultSet getData(String statement, Object... params) throws DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                prepareStatement(ps, params);
-                try (ResultSet rs = ps.executeQuery()) {
-                    return rs;
-                }
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Could not read data: " + e.getMessage());
-        }
-    }
-
-    private void prepareStatement(PreparedStatement ps, Object[] params) throws SQLException, DataAccessException {
+    private void prepareStatement(PreparedStatement ps, Object... params) throws SQLException, DataAccessException {
         for (int i = 0; i < params.length; i++) {
             Object param = params[i];
             switch (param) {
