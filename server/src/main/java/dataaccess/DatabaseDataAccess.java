@@ -49,6 +49,7 @@ public class DatabaseDataAccess implements DataAccess {
     @Override
     public void createAuth(AuthData authData) throws DataAccessException {
         String statement = "INSERT INTO authdata (authtoken, username) VALUES (?, ?, ?)";
+        updateDatabase(statement, authData.authToken(), authData.username());
     }
 
     @Override
