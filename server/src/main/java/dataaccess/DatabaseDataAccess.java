@@ -13,6 +13,30 @@ import java.util.List;
 import static java.sql.Types.NULL;
 
 public class DatabaseDataAccess implements DataAccess {
+    private final String[] createStatements = {"""
+    CREATE TABLE IF NOT EXISTS users (
+        username VARCHAR(32),
+        passhash VARCHAR(64),
+        email VARCHAR(64),
+        PRIMARY KEY (username)
+    );
+    """, """
+    CREATE TABLE IF NOT EXISTS games (
+        gameid VARCHAR(64),
+        whiteusername VARCHAR(32),
+        blackusername VARCHAR(32),
+        gamename VARCHAR(32),
+        gamejson TEXT,
+        PRIMARY KEY (gameid)
+    );
+    """, """
+    CREATE TABLE IF NOT EXISTS authdata (
+        authtoken VARCHAR(64),
+        username VARCHAR(32),
+        PRIMARY KEY (authtoken)
+    );
+    """};
+
     public DatabaseDataAccess() throws DataAccessException {
         configureDatabase();
     }
@@ -133,7 +157,6 @@ public class DatabaseDataAccess implements DataAccess {
         updateDatabase(statement, whiteName, blackName, gameJson, gameID);
     }
 
-
     private void updateDatabase(String statement, Object... params) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -169,25 +192,6 @@ public class DatabaseDataAccess implements DataAccess {
             }
         }
     }
-
-    private final String[] createStatements = {"""
-            CREATE TABLE IF NOT EXISTS users (
-               username VARCHAR(32),
-               passhash VARCHAR(64),
-               email VARCHAR(64),
-               PRIMARY KEY (username)
-            );
-            CREATE TABLE IF NOT EXISTS games (
-                gameid VARCHAR(64),
-                whiteusername VARCHAR(32),
-                blackusername VARCHAR(32),
-                gamename VARCHAR(32),
-                gamejson TEXT
-                );
-            CREATE TABLE IF NOT EXISTS authdata (
-                authtoken VARCHAR(64),
-                username VARCHAR(32)
-            );"""};
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
