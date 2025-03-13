@@ -1,10 +1,13 @@
 package dataaccess;
 
+import chess.ChessGame;
+import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.sql.Types.NULL;
@@ -23,12 +26,13 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void createUser(UserData userData) throws DataAccessException {
-
+        String statement = "INSERT INTO users (username, passhash, email) VALUES(?,?,?)";
+        updateDatabase(statement, userData.username(), userData.password(), userData.email());
     }
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-        ResultSet rs = getData("SELECT username, passhash, email FROM users WHERE username=?", username);
+        ResultSet rs = getData("SELECT * FROM users WHERE username=?", username);
         try {
             if (rs.next()) {
                 String gotUsername = rs.getString("username");
@@ -44,7 +48,7 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void createAuth(AuthData authData) throws DataAccessException {
-
+        String statement = "INSERT INTO authdata (authtoken, username) VALUES (?, ?, ?)";
     }
 
     @Override
@@ -54,7 +58,7 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        ResultSet rs = getData("SELECT authtoken, username FROM authdata WHERE authtoken=?", authToken);
+        ResultSet rs = getData("SELECT * FROM authdata WHERE authtoken=?", authToken);
         try {
             if (rs.next()) {
                 String gotAuth = rs.getString("authtoken");
@@ -69,7 +73,22 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public List<GameData> listGames() throws DataAccessException {
-        return List.of();
+        ArrayList<GameData> gameList = new ArrayList<GameData>();
+        ResultSet rs = getData("SELECT * FROM games");
+        try {
+            while (rs.next()) {
+                int gotGameID = rs.getInt("gameid");
+                String whiteUsername = rs.getString("whiteusername");
+                String blackUsername = rs.getString("blackusername");
+                String gameName = rs.getString("gamename");
+                String gameJSON = rs.getString("gamejson");
+                ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
+                gameList.add(new GameData(gotGameID, whiteUsername, blackUsername, gameName, game));
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Could not get data: " + e.getMessage());
+        }
+        return gameList;
     }
 
     @Override
