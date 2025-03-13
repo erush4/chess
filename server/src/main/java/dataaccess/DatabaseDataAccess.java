@@ -15,9 +15,9 @@ import static java.sql.Types.NULL;
 public class DatabaseDataAccess implements DataAccess {
     private final String[] createStatements = {"""
     CREATE TABLE IF NOT EXISTS users (
-        username VARCHAR(32),
-        passhash VARCHAR(64),
-        email VARCHAR(64),
+        username VARCHAR(32) NOT NULL,
+        passhash VARCHAR(64) NOT NULL,
+        email VARCHAR(64) NOT NULL,
         PRIMARY KEY (username)
     );
     """, """
@@ -31,8 +31,8 @@ public class DatabaseDataAccess implements DataAccess {
     );
     """, """
     CREATE TABLE IF NOT EXISTS authdata (
-        authtoken VARCHAR(64),
-        username VARCHAR(32),
+        authtoken VARCHAR(64) NOT NULL,
+        username VARCHAR(32) NOT NULL,
         PRIMARY KEY (authtoken)
     );
     """};

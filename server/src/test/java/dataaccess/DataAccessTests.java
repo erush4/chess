@@ -102,4 +102,24 @@ public class DataAccessTests {
         }
     }
 
+    @Test
+    @DisplayName("createUser Succeeds on Valid Input")
+    void addGoodUser() {
+        try {
+            database.createUser(newUser);
+            var expected = newUser;
+            var actual = database.getUser(newUser.username());
+            Assertions.assertEquals(expected, actual);
+        } catch (DataAccessException e) {
+            Assertions.fail(e.getMessage());
+        }
+    }
+    @Test
+    @DisplayName("createUser Fails On Bad Input")
+    void addBadUser() {
+        var badUser = new UserData(null, null, null);
+        Assertions.assertThrows(DataAccessException.class, () -> database.createUser(badUser));
+    }
+
+
 }
