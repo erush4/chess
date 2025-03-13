@@ -4,6 +4,7 @@ import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -45,6 +46,7 @@ public class Service {
     public RegisterResponse register(RegisterRequest request) throws ResponseException {
         UserData user;
         String authToken;
+
         try {
             if (request.username() == null || request.email() == null || request.password() == null) {
                 throw new ResponseException(400, "bad request");
@@ -53,7 +55,8 @@ public class Service {
             if (user != null) {
                 throw new ResponseException(403, "already taken");
             }
-            UserData newUser = new UserData(request.username(), request.password(), request.email());
+            String hashPassword = BCrypt.hashpw(request.password(), BCrypt.gensalt());
+            UserData newUser = new UserData(request.username(), hashPassword, request.email());
             dataAccess.createUser(newUser);
             authToken = createAuthData(request.username());
         } catch (DataAccessException e) {
@@ -71,7 +74,7 @@ public class Service {
         }
         try {
             user = dataAccess.getUser(request.username());
-            if (user == null || !Objects.equals(user.password(), request.password())) {
+            if (user == null || !BCrypt.checkpw(request.password(), user.password())) {
                 throw new ResponseException(401, "unauthorized");
             }
             authToken = createAuthData(user.username());

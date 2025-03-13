@@ -59,7 +59,7 @@ public class ServiceUnitTests {
             RegisterRequest request = new RegisterRequest(newUser.username(), newUser.password(), newUser.email());
             service.register(request);
             UserData thing = dataAccess.getUser("NewUser");
-            Assertions.assertEquals(thing, newUser, "Response did not contain the same UserData as expected");
+            Assertions.assertNotNull(thing, "Response did not contain any UserData");
         } catch (Exception e) {
             fail("test failed due to exception" + e.getMessage());
         }
