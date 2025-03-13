@@ -1,6 +1,8 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
+import dataaccess.DatabaseDataAccess;
 import dataaccess.MemoryDataAccess;
 import model.*;
 import service.Service;
@@ -12,7 +14,11 @@ public class Server {
     private final Service service;
 
     public Server() {
-        this.service = new Service(new MemoryDataAccess());
+        try {
+            this.service = new Service(new DatabaseDataAccess());
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public int run(int desiredPort) {
