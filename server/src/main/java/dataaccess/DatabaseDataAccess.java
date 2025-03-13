@@ -36,7 +36,7 @@ public class DatabaseDataAccess implements DataAccess {
         try {
             if (rs.next()) {
                 String gotUsername = rs.getString("username");
-                String passhash = rs.getString("gotPasshash");
+                String passhash = rs.getString("passhash");
                 String email = rs.getString("email");
                 return new UserData(gotUsername, passhash, email);
             }
@@ -48,7 +48,7 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void createAuth(AuthData authData) throws DataAccessException {
-        String statement = "INSERT INTO authdata (authtoken, username) VALUES (?, ?, ?)";
+        String statement = "INSERT INTO authdata (authtoken, username) VALUES (?, ?)";
         updateDatabase(statement, authData.authToken(), authData.username());
     }
 
@@ -75,7 +75,7 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public List<GameData> listGames() throws DataAccessException {
-        ArrayList<GameData> gameList = new ArrayList<GameData>();
+        ArrayList<GameData> gameList = new ArrayList<>();
         ResultSet rs = getData("SELECT * FROM games");
         try {
             while (rs.next()) {
@@ -125,8 +125,14 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void updateGame(GameData newGameData) throws DataAccessException {
-
+        String statement = "UPDATE games SET whiteusername=?, blackusername=?, gamejson=? WHERE gameid=?";
+        int gameID = newGameData.gameID();
+        String whiteName = newGameData.whiteUsername();
+        String blackName = newGameData.blackUsername();
+        String gameJson = new Gson().toJson(newGameData.game());
+        updateDatabase(statement, whiteName, blackName, gameJson, gameID);
     }
+
 
     private void updateDatabase(String statement, Object... params) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
@@ -170,18 +176,18 @@ public class DatabaseDataAccess implements DataAccess {
                passhash VARCHAR(64),
                email VARCHAR(64),
                PRIMARY KEY (username)
-            )
+            );
             CREATE TABLE IF NOT EXISTS games (
                 gameid VARCHAR(64),
                 whiteusername VARCHAR(32),
                 blackusername VARCHAR(32),
                 gamename VARCHAR(32),
                 gamejson TEXT
-                )
+                );
             CREATE TABLE IF NOT EXISTS authdata (
-                authtoken VARCHAR(64)
+                authtoken VARCHAR(64),
                 username VARCHAR(32)
-            )"""};
+            );"""};
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
