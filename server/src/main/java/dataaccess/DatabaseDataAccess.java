@@ -54,7 +54,8 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void deleteAuth(AuthData authData) throws DataAccessException {
-
+        String statement = "DELETE FROM authdata WHERE authtoken=?";
+        updateDatabase(statement, authData.authToken());
     }
 
     @Override
@@ -94,7 +95,13 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void addGame(GameData gameData) throws DataAccessException {
-
+        String statement = "INSERT INTO games (gameid, whiteusername, blackusername, gamename, gamejson) VALUES (?, ?, ?, ?, ?)";
+        int gameID = gameData.gameID();
+        String whiteName = gameData.whiteUsername();
+        String blackName = gameData.blackUsername();
+        String gameName = gameData.gameName();
+        String gameJson = new Gson().toJson(gameData.game());
+        updateDatabase(statement, gameID, whiteName, blackName, gameName, gameJson);
     }
 
     @Override
