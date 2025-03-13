@@ -16,7 +16,7 @@ public class DataAccessTests {
     static AuthData existingAuth;
     static AuthData newAuth;
 
-    private final String[] setupStrings = {"INSERT INTO users (username, passhash,  email) VALUES ('" + existingUser.username() + "', '" + existingUser.password() + "', '" + existingUser.email() + "')", "INSERT INTO authdata (authtoken, username) VALUES('"+ existingAuth.authToken() + "', '" + existingAuth.username() + "')",
+    private final String[] setupStrings = {"INSERT INTO users (username, passhash,  email) VALUES ('" + existingUser.username() + "', '" + existingUser.password() + "', '" + existingUser.email() + "')", "INSERT INTO authdata (authtoken, username) VALUES('" + existingAuth.authToken() + "', '" + existingAuth.username() + "')",
 
     };
 
@@ -114,6 +114,7 @@ public class DataAccessTests {
             Assertions.fail(e.getMessage());
         }
     }
+
     @Test
     @DisplayName("createUser Fails On Bad Input")
     void addBadUser() {
@@ -121,5 +122,24 @@ public class DataAccessTests {
         Assertions.assertThrows(DataAccessException.class, () -> database.createUser(badUser));
     }
 
+    @Test
+    @DisplayName("createAuth Succeeds on Valid Input")
+    void addGoodAuth() {
+        try {
+            database.createAuth(newAuth);
+            var expected = newAuth;
+            var actual = database.getAuth(newAuth.authToken());
+            Assertions.assertEquals(expected, actual);
+        } catch (DataAccessException e) {
+            Assertions.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("createAuth Fails On Bad Input")
+    void addBadAuth() {
+        var badAuth = new AuthData(null, null);
+        Assertions.assertThrows(DataAccessException.class, () -> database.createAuth(badAuth));
+    }
 
 }
