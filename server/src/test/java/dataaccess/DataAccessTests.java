@@ -13,8 +13,10 @@ public class DataAccessTests {
     static UserData existingUser;
     static UserData newUser;
     static GameData existingGame;
+    static AuthData existingAuth;
+    static AuthData newAuth;
 
-    private final String[] setupStrings = {"INSERT INTO users (username, passhash,  email) VALUES ('" + existingUser.username() + "', '" + existingUser.password() + "', '" + existingUser.email() + "')", "INSERT INTO authdata (authtoken, username) VALUES('testauth', '" + existingUser.username() + "')",
+    private final String[] setupStrings = {"INSERT INTO users (username, passhash,  email) VALUES ('" + existingUser.username() + "', '" + existingUser.password() + "', '" + existingUser.email() + "')", "INSERT INTO authdata (authtoken, username) VALUES('"+ existingAuth.authToken() + "', '" + existingAuth.username() + "')",
 
     };
 
@@ -23,12 +25,15 @@ public class DataAccessTests {
         existingUser = new UserData("ExistingUser", "existingUserPassword", "eu@mail.com");
         newUser = new UserData("NewUser", "newUserPassword", "nu@mail.com");
         existingGame = new GameData(-1, null, null, "existingGame", new ChessGame());
+        existingAuth = new AuthData("testAuth", existingUser.username());
+        newAuth = new AuthData("newAuth", newUser.username());
         try {
             database = new DatabaseDataAccess();
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
     }
+
 
     @AfterEach
     public void reset() {
@@ -75,5 +80,26 @@ public class DataAccessTests {
         }
     }
 
+    @Test
+    @DisplayName("getAuth on Valid Auth Succeeds")
+    void getValidAuth() {
+        try {
+            var expected = existingAuth;
+            var actual = database.getAuth(existingAuth.authToken());
+            Assertions.assertEquals(expected, actual);
+        } catch (DataAccessException e) {
+            Assertions.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("getAuth on Invalid Auth Fails")
+    void getInvalidAuth() {
+        try {
+            Assertions.assertNull(database.getAuth(newAuth.authToken()));
+        } catch (DataAccessException e) {
+            Assertions.fail(e.getMessage());
+        }
+    }
 
 }
