@@ -98,7 +98,21 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
-        return null;
+        ResultSet rs = getData("SELECT * FROM authdata WHERE gameId=?", gameID);
+        try {
+            if (rs.next()) {
+                int gotGameID = rs.getInt("gameid");
+                String whiteUsername = rs.getString("whiteusername");
+                String blackUsername = rs.getString("blackusername");
+                String gameName = rs.getString("gamename");
+                String gameJSON = rs.getString("gamejson");
+                ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
+                return new GameData(gotGameID, whiteUsername, blackUsername, gameName, game);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new DataAccessException("Could not get data: " + e.getMessage());
+        }
     }
 
     @Override
