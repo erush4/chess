@@ -1,6 +1,7 @@
 package dataaccess;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
 import model.*;
 import org.junit.jupiter.api.*;
 
@@ -15,9 +16,22 @@ public class DataAccessTests {
     static GameData existingGame;
     static AuthData existingAuth;
     static AuthData newAuth;
+    static String gameJson;
 
-    private final String[] setupStrings = {"INSERT INTO users (username, passhash,  email) VALUES ('" + existingUser.username() + "', '" + existingUser.password() + "', '" + existingUser.email() + "')", "INSERT INTO authdata (authtoken, username) VALUES('" + existingAuth.authToken() + "', '" + existingAuth.username() + "')",
-
+    private final String[] setupStrings = {
+            "INSERT INTO users (username, passhash,  email) VALUES ("
+                    + nullCorrect(existingUser.username()) + ", "
+                    + nullCorrect(existingUser.password()) + ", "
+                    + nullCorrect(existingUser.email()) + ")",
+            "INSERT INTO authdata (authtoken, username) VALUES("
+                    + nullCorrect(existingAuth.authToken()) + ", "
+                    + nullCorrect(existingAuth.username()) + ")",
+            "INSERT INTO  games (gameid, whiteusername, blackusername, gamename, gamejson) Values('"
+                    + existingGame.gameID() + "', "
+                    + nullCorrect(existingGame.whiteUsername()) + ", "
+                    + nullCorrect(existingGame.blackUsername()) + ", "
+                    + nullCorrect(existingGame.gameName()) + ", "
+                    + nullCorrect(gameJson) + ")"
     };
 
     @BeforeAll
@@ -27,6 +41,7 @@ public class DataAccessTests {
         existingGame = new GameData(-1, null, null, "existingGame", new ChessGame());
         existingAuth = new AuthData("testAuth", existingUser.username());
         newAuth = new AuthData("newAuth", newUser.username());
+        gameJson = new Gson().toJson(existingGame.game());
         try {
             database = new DatabaseDataAccess();
         } catch (DataAccessException e) {
@@ -34,6 +49,13 @@ public class DataAccessTests {
         }
     }
 
+    private String nullCorrect(String input) {
+        if (input == null) {
+            return "NULL";
+        } else {
+            return "'" + input + "'";
+        }
+    }
 
     @AfterEach
     public void reset() {
@@ -141,5 +163,29 @@ public class DataAccessTests {
         var badAuth = new AuthData(null, null);
         Assertions.assertThrows(DataAccessException.class, () -> database.createAuth(badAuth));
     }
+
+    @Test
+    @DisplayName("getGame Succeeds on Valid Input")
+    void getGoodGame() {
+        try {
+            var expected = existingGame;
+            var actual = database.getGame(existingGame.gameID());
+            Assertions.assertEquals(expected, actual);
+        } catch (DataAccessException e) {
+            Assertions.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("getGame Fails on Invalid Input")
+    void getBadGame() {
+        try {
+            GameData actual = database.getGame(1234);
+            Assertions.assertNull(actual);
+        } catch (DataAccessException e) {
+            Assertions.fail(e.getMessage());
+        }
+    }
+
 
 }

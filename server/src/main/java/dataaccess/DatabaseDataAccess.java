@@ -22,10 +22,10 @@ public class DatabaseDataAccess implements DataAccess {
     );
     """, """
     CREATE TABLE IF NOT EXISTS games (
-        gameid VARCHAR(64),
+        gameid VARCHAR(64) NOT NULL,
         whiteusername VARCHAR(32),
         blackusername VARCHAR(32),
-        gamename VARCHAR(32),
+        gamename VARCHAR(32) NOT NULL,
         gamejson TEXT,
         PRIMARY KEY (gameid)
     );
