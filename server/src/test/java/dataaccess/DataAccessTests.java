@@ -8,15 +8,18 @@ import org.junit.jupiter.api.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class DataAccessTests {
     static DatabaseDataAccess database;
     static UserData existingUser;
     static UserData newUser;
     static GameData existingGame;
+    static GameData newGame;
     static AuthData existingAuth;
     static AuthData newAuth;
     static String gameJson;
+
 
     private final String[] setupStrings = {
             "INSERT INTO users (username, passhash,  email) VALUES ("
@@ -39,6 +42,7 @@ public class DataAccessTests {
         existingUser = new UserData("ExistingUser", "existingUserPassword", "eu@mail.com");
         newUser = new UserData("NewUser", "newUserPassword", "nu@mail.com");
         existingGame = new GameData(-1, null, null, "existingGame", new ChessGame());
+        newGame = new GameData(-2, null, null, "newGame", new ChessGame());
         existingAuth = new AuthData("testAuth", existingUser.username());
         newAuth = new AuthData("newAuth", newUser.username());
         gameJson = new Gson().toJson(existingGame.game());
@@ -182,6 +186,31 @@ public class DataAccessTests {
         try {
             GameData actual = database.getGame(1234);
             Assertions.assertNull(actual);
+        } catch (DataAccessException e) {
+            Assertions.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("listGames Succeeds With Games")
+    void listOneGame(){
+        try{
+            var expected = new ArrayList<GameData>();
+            expected.add(existingGame);
+            var actual = database.listGames();
+            Assertions.assertEquals(expected, actual);
+        } catch (DataAccessException e) {
+            Assertions.fail(e.getMessage());
+        }
+    }
+    @Test
+    @DisplayName("listGames Succeeds With No Games")
+    void listNoGame(){
+        try{
+            database.clearData();
+            var expected = new ArrayList<GameData>();
+            var actual = database.listGames();
+            Assertions.assertEquals(expected, actual);
         } catch (DataAccessException e) {
             Assertions.fail(e.getMessage());
         }
