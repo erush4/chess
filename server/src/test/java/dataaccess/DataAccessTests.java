@@ -1,6 +1,6 @@
 package dataaccess;
 
-import chess.ChessGame;
+import chess.*;
 import com.google.gson.Gson;
 import model.*;
 import org.junit.jupiter.api.*;
@@ -193,8 +193,8 @@ public class DataAccessTests {
 
     @Test
     @DisplayName("listGames Succeeds With Games")
-    void listOneGame(){
-        try{
+    void listOneGame() {
+        try {
             var expected = new ArrayList<GameData>();
             expected.add(existingGame);
             var actual = database.listGames();
@@ -203,10 +203,11 @@ public class DataAccessTests {
             Assertions.fail(e.getMessage());
         }
     }
+
     @Test
     @DisplayName("listGames Succeeds With No Games")
-    void listNoGame(){
-        try{
+    void listNoGame() {
+        try {
             database.clearData();
             var expected = new ArrayList<GameData>();
             var actual = database.listGames();
@@ -214,6 +215,26 @@ public class DataAccessTests {
         } catch (DataAccessException e) {
             Assertions.fail(e.getMessage());
         }
+    }
+
+    @Test
+    @DisplayName("addGame Succeeds With Valid Games")
+    void addValidGame() {
+        try {
+            var expected = database.listGames();
+            expected.add(newGame);
+            database.addGame(newGame);
+            var actual = database.listGames();
+            Assertions.assertEquals(expected, actual);
+        } catch (DataAccessException e) {
+            Assertions.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("addGame Fails if Adding twice")
+    void addBadGame() {
+        Assertions.assertThrows(DataAccessException.class, () -> database.addGame(existingGame));
     }
 
 
