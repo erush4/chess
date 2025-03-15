@@ -173,15 +173,16 @@ public class DatabaseDataAccess implements DataAccess {
 
     @Override
     public void updateGame(GameData newGameData) throws DataAccessException {
-        String statement = "UPDATE games SET whiteusername=?, blackusername=?, gamejson=? WHERE gameid=?";
+        String statement = "UPDATE games SET whiteusername=?, blackusername=?, gamename=?, gamejson=? WHERE gameid=?";
         int gameID = newGameData.gameID();
         if(getGame(gameID) == null){
             throw new DataAccessException("gameID does not exist");
         }
         String whiteName = newGameData.whiteUsername();
         String blackName = newGameData.blackUsername();
+        String gameName = newGameData.gameName();
         String gameJson = new Gson().toJson(newGameData.game());
-        updateDatabase(statement, whiteName, blackName, gameJson, gameID);
+        updateDatabase(statement, whiteName, blackName, gameName, gameJson, gameID);
     }
 
     private void updateDatabase(String statement, Object... params) throws DataAccessException {

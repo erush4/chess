@@ -41,8 +41,8 @@ public class DataAccessTests {
     static void init() {
         existingUser = new UserData("ExistingUser", "existingUserPassword", "eu@mail.com");
         newUser = new UserData("NewUser", "newUserPassword", "nu@mail.com");
-        existingGame = new GameData(-1, null, null, "existingGame", new ChessGame());
         newGame = new GameData(-2, null, null, "newGame", new ChessGame());
+        existingGame = new GameData(-1, null, null, "existingGame", new ChessGame());
         existingAuth = new AuthData("testAuth", existingUser.username());
         newAuth = new AuthData("newAuth", newUser.username());
         gameJson = new Gson().toJson(existingGame.game());
@@ -61,22 +61,17 @@ public class DataAccessTests {
         }
     }
 
-    @AfterEach
-    public void reset() {
-        try {
-            database.clearData();
-        } catch (DataAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 
     @BeforeEach
     public void setup() {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            for (String statement : setupStrings) {
-                try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                    ps.executeUpdate();
+        try {
+            database.clearData();
+            existingGame = new GameData(-1, null, null, "existingGame", new ChessGame());
+            try (Connection conn = DatabaseManager.getConnection()) {
+                for (String statement : setupStrings) {
+                    try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                        ps.executeUpdate();
+                    }
                 }
             }
         } catch (SQLException | DataAccessException e) {
@@ -244,12 +239,13 @@ public class DataAccessTests {
             var updatedGame1 = new GameData(
                     existingGame.gameID(),
                     existingUser.username(),
-                    existingGame.blackUsername(),
-                    existingGame.gameName(),
+                    newUser.username(),
+                    "UpdatedGame1",
                     existingGame.game()
             );
 
-            var gameUpdate = existingGame.game();
+            var gameUpdateString = new Gson().toJson(existingGame.game());
+            var gameUpdate = new Gson().fromJson(gameUpdateString, ChessGame.class);
             var possibleMoves = gameUpdate.validMoves(new ChessPosition(2, 4));
             gameUpdate.makeMove(possibleMoves.iterator().next());
 
@@ -257,14 +253,15 @@ public class DataAccessTests {
                     existingGame.gameID(),
                     existingUser.username(),
                     existingGame.blackUsername(),
-                    existingGame.gameName(),
+                    "UpdatedGame2",
                     gameUpdate
             );
 
             Assertions.assertDoesNotThrow(() -> database.updateGame(updatedGame1));
             Assertions.assertEquals(updatedGame1, database.getGame(updatedGame1.gameID()));
-            Assertions.assertDoesNotThrow(() -> database.updateGame(updatedGame1));
-            Assertions.assertEquals(updatedGame2, database.getGame(updatedGame2.gameID()));
+            Assertions.assertDoesNotThrow(() -> database.updateGame(updatedGame2));
+            var actual = database.getGame(updatedGame2.gameID());
+            Assertions.assertEquals(updatedGame2, actual);
 
         } catch (InvalidMoveException | DataAccessException e) {
             Assertions.fail(e.getMessage());
