@@ -302,6 +302,6 @@ public class DataAccessTests {
     @Test
     @DisplayName("deleteAuth Fails on Bad Input")
     void deleteBadAuth() {
-        Assertions.assertThrows(DataAccessException.class, () ->database.deleteAuth(newAuth));
+        Assertions.assertThrows(DataAccessException.class, () -> database.deleteAuth(newAuth));
     }
 }
