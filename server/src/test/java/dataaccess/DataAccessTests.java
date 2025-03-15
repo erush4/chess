@@ -240,9 +240,7 @@ public class DataAccessTests {
     @Test
     @DisplayName("updateGame Succeeds on Good Input")
     void updateGoodGame() {
-
         try {
-
             var updatedGame1 = new GameData(existingGame.gameID(), existingUser.username(), existingGame.blackUsername(), existingGame.gameName(), existingGame.game());
 
             var gameUpdate = existingGame.game();
@@ -259,6 +257,13 @@ public class DataAccessTests {
         } catch (InvalidMoveException | DataAccessException e) {
             Assertions.fail(e.getMessage());
         }
+    }
+
+    @Test
+    @DisplayName("updateGame Fails on Bad Input")
+    void updateBadGame() {
+        var badGame = new GameData(111, null, null, "name", null);
+        Assertions.assertThrows(DataAccessException.class, () -> database.updateGame(badGame));
     }
 
 }

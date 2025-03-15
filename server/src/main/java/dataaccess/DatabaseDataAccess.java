@@ -170,6 +170,9 @@ public class DatabaseDataAccess implements DataAccess {
     public void updateGame(GameData newGameData) throws DataAccessException {
         String statement = "UPDATE games SET whiteusername=?, blackusername=?, gamejson=? WHERE gameid=?";
         int gameID = newGameData.gameID();
+        if(getGame(gameID) == null){
+            throw new DataAccessException("gameID does not exist");
+        }
         String whiteName = newGameData.whiteUsername();
         String blackName = newGameData.blackUsername();
         String gameJson = new Gson().toJson(newGameData.game());
