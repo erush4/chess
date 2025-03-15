@@ -290,4 +290,21 @@ public class DataAccessTests {
             Assertions.fail(e.getMessage());
         }
     }
+
+    @Test
+    @DisplayName("deleteAuth Deletes Valid Auth")
+    void deleteGoodAuth() {
+        try {
+            database.deleteAuth(existingAuth);
+            Assertions.assertNull(database.getAuth(existingAuth.authToken()));
+        } catch (DataAccessException e) {
+            Assertions.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("deleteAuth Fails on Bad Input")
+    void deleteBadAuth() {
+        Assertions.assertThrows(DataAccessException.class, () ->database.deleteAuth(newAuth));
+    }
 }

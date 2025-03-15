@@ -12,6 +12,7 @@ import java.util.List;
 
 import static java.sql.Types.NULL;
 
+@SuppressWarnings("ALL")
 public class DatabaseDataAccess implements DataAccess {
     private final String[] createStatements = {"""
     CREATE TABLE IF NOT EXISTS users (
@@ -78,12 +79,16 @@ public class DatabaseDataAccess implements DataAccess {
     @Override
     public void createAuth(AuthData authData) throws DataAccessException {
         String statement = "INSERT INTO authdata (authtoken, username) VALUES (?, ?)";
+        getAuth(authData.authToken());
         updateDatabase(statement, authData.authToken(), authData.username());
     }
 
     @Override
     public void deleteAuth(AuthData authData) throws DataAccessException {
         String statement = "DELETE FROM authdata WHERE authtoken=?";
+        if(getAuth(authData.authToken()) == null){
+            throw new DataAccessException("gameID does not exist");
+        }
         updateDatabase(statement, authData.authToken());
     }
 
