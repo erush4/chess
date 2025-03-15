@@ -266,4 +266,16 @@ public class DataAccessTests {
         Assertions.assertThrows(DataAccessException.class, () -> database.updateGame(badGame));
     }
 
+    @Test
+    @DisplayName("clear Clears Data")
+    void clearAllData() {
+        try {
+            database.clearData();
+            Assertions.assertNull(database.getGame(existingGame.gameID()));
+            Assertions.assertNull(database.getUser(existingUser.username()));
+            Assertions.assertNull(database.getAuth(existingAuth.authToken()));
+        } catch (DataAccessException e) {
+            Assertions.fail(e.getMessage());
+        }
+    }
 }
