@@ -241,13 +241,25 @@ public class DataAccessTests {
     @DisplayName("updateGame Succeeds on Good Input")
     void updateGoodGame() {
         try {
-            var updatedGame1 = new GameData(existingGame.gameID(), existingUser.username(), existingGame.blackUsername(), existingGame.gameName(), existingGame.game());
+            var updatedGame1 = new GameData(
+                    existingGame.gameID(),
+                    existingUser.username(),
+                    existingGame.blackUsername(),
+                    existingGame.gameName(),
+                    existingGame.game()
+            );
 
             var gameUpdate = existingGame.game();
             var possibleMoves = gameUpdate.validMoves(new ChessPosition(2, 4));
             gameUpdate.makeMove(possibleMoves.iterator().next());
 
-            var updatedGame2 = new GameData(existingGame.gameID(), existingUser.username(), existingGame.blackUsername(), existingGame.gameName(), gameUpdate);
+            var updatedGame2 = new GameData(
+                    existingGame.gameID(),
+                    existingUser.username(),
+                    existingGame.blackUsername(),
+                    existingGame.gameName(),
+                    gameUpdate
+            );
 
             Assertions.assertDoesNotThrow(() -> database.updateGame(updatedGame1));
             Assertions.assertEquals(updatedGame1, database.getGame(updatedGame1.gameID()));
