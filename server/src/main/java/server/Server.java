@@ -74,11 +74,10 @@ public class Server {
         return new Gson().toJson(result);
     }
 
-    private Object exceptionHandler(ResponseException e, Request request, Response response) {
+    private void exceptionHandler(ResponseException e, Request request, Response response) {
         response.status(e.getStatusCode());
         String message = e.toJson();
         response.body(message);
-        return message;
     }
 
     private Object register(Request request, Response response) throws ResponseException {

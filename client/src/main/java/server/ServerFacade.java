@@ -15,8 +15,8 @@ import java.net.URL;
 public class ServerFacade {
     private final String serverUrl;
 
-    public ServerFacade(String url) {
-        serverUrl = url;
+    public ServerFacade(String port) {
+        serverUrl = "http://localhost:" + port;
     }
 
     private static void writeBody(Object requestObject, String authtoken, HttpURLConnection http) throws IOException {
@@ -47,7 +47,7 @@ public class ServerFacade {
     }
 
     public RegisterResponse register(RegisterRequest registerRequest) throws ResponseException {
-        return this.request("POST", "/session", registerRequest, null, RegisterResponse.class);
+        return this.request("POST", "/user", registerRequest, null, RegisterResponse.class);
     }
 
     public void logout(String authtoken) throws ResponseException {
@@ -72,7 +72,7 @@ public class ServerFacade {
             if (status != 200) {
                 try (InputStream respError = http.getErrorStream()) {
                     if (respError != null) {
-                        throw ResponseException.fromStream(respError);
+                        throw ResponseException.fromStream(respError, status);
                     }
                 }
             }

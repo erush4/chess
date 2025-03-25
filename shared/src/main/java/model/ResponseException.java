@@ -18,10 +18,9 @@ public class ResponseException extends Exception {
     public String toJson() {
         return new Gson().toJson(Map.of("message", getMessage()));
     }
-    public static ResponseException fromStream(InputStream stream) {
+    public static ResponseException fromStream(InputStream stream, int status) {
         var map = new Gson().fromJson(new InputStreamReader(stream), HashMap.class);
-        var status = ((Double)map.get("status")).intValue();
-        String message = map.get("message").toString();
+        String message = map.get("message").toString().substring(7);
         return new ResponseException(status, message);
     }
 

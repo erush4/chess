@@ -59,11 +59,11 @@ public class BaseRepl {
     }
 
     public String login(String[] params){
-
+        return null;
     }
 
     public String register(String[] params){
-
+        return null;
     }
 
     private void printPrompt(){
