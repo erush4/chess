@@ -3,6 +3,8 @@ package chess;
 import java.util.Collection;
 import java.util.Objects;
 
+import static ui.EscapeSequences.*;
+
 /**
  * Represents a single chess piece
  * <p>
@@ -16,6 +18,24 @@ public class ChessPiece {
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         color = pieceColor;
         this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        String output = "";
+        switch (color){
+            case BLACK -> output += SET_TEXT_COLOR_BLACK;
+            case WHITE -> output += SET_TEXT_COLOR_WHITE;
+        }
+        switch (type){
+            case KING -> output += BLACK_KING;
+            case QUEEN -> output += BLACK_QUEEN;
+            case ROOK -> output += BLACK_ROOK;
+            case BISHOP -> output += BLACK_BISHOP;
+            case KNIGHT -> output += BLACK_KNIGHT;
+            case PAWN -> output += BLACK_PAWN;
+        }
+        return output;
     }
 
     @Override
