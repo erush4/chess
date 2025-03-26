@@ -1,12 +1,12 @@
 package client;
 
+import chess.ChessGame;
 import model.*;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -22,6 +22,7 @@ public class ServerFacadeTests {
     private static RegisterRequest registerExisting;
     private static RegisterRequest registerNew;
     private static CreateGameRequest createGame;
+    private static JoinGameRequest joinRequest;
     private static int existingGameID;
 
     @BeforeAll
@@ -105,8 +106,8 @@ public class ServerFacadeTests {
 
     @Test
     @DisplayName("Logout Fails If Authtoken Doesn't Exist")
-    void logoutFails(){
-        Assertions.assertThrows(ResponseException.class, ()-> serverFacade.logout("not an authtoken"));
+    void logoutFails() {
+        Assertions.assertThrows(ResponseException.class, () -> serverFacade.logout("not an authtoken"));
     }
 
     @Test
@@ -124,6 +125,27 @@ public class ServerFacadeTests {
     void ListGamesFails() {
         Assertions.assertThrows(ResponseException.class, () -> newAuth = serverFacade.register(registerExisting).authToken());
         Assertions.assertNull(newAuth);
+    }
+
+    @Test
+    @DisplayName("JoinGame Succeeds With Valid Input")
+    void joinGameSucceeds() {
+        joinRequest = new JoinGameRequest(ChessGame.TeamColor.WHITE, existingGameID);
+        Assertions.assertDoesNotThrow(() -> serverFacade.joinGame(joinRequest, existingAuth));
+    }
+
+    @Test
+    @DisplayName("joinGame Fails If Already Taken")
+    void joinGameFails() {
+        try {
+            joinRequest = new JoinGameRequest(ChessGame.TeamColor.BLACK, existingGameID);
+            serverFacade.joinGame(joinRequest, existingAuth);
+            newAuth = serverFacade.register(registerNew).authToken();
+            Assertions.assertThrows(ResponseException.class, () -> serverFacade.joinGame(joinRequest, newAuth));
+        } catch (ResponseException e) {
+            fail("test failed due to exception:" + e.getMessage());
+        }
+
     }
 
     @Test
