@@ -1,11 +1,12 @@
 package client;
 
-import model.LoginRequest;
-import model.RegisterRequest;
-import model.ResponseException;
+import model.*;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -20,15 +21,16 @@ public class ServerFacadeTests {
     private static LoginRequest loginNew;
     private static RegisterRequest registerExisting;
     private static RegisterRequest registerNew;
+    private static CreateGameRequest createGame;
+    private static int existingGameID;
 
     @BeforeAll
     public static void init() {
-        int portNumber = 3001;
         server = new Server();
-        var port = server.run(portNumber);
+        int port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
 
-        serverFacade = new ServerFacade(Integer.toString(portNumber));
+        serverFacade = new ServerFacade(Integer.toString(port));
 
         String existingName = "existingUser";
         String password = "password";
@@ -39,17 +41,19 @@ public class ServerFacadeTests {
         loginNew = new LoginRequest(newName, password);
         registerExisting = new RegisterRequest(existingName, password, email);
         registerNew = new RegisterRequest(newName, password, email);
+        createGame = new CreateGameRequest("game name");
     }
 
     @AfterAll
-    static void stopServer() {
+    static void stopServer() throws ResponseException {
+        serverFacade.clear();
         server.stop();
     }
 
     @BeforeEach
     void setup() throws ResponseException {
         existingAuth = serverFacade.register(registerExisting).authToken();
-
+        existingGameID = serverFacade.createGame(createGame, existingAuth).gameID();
     }
 
     @AfterEach
@@ -58,14 +62,73 @@ public class ServerFacadeTests {
     }
 
     @Test
+    @DisplayName("Login Succeeds With Valid Input")
+    void loginSucceeds() {
+        try {
+            serverFacade.logout(existingAuth);
+            Assertions.assertDoesNotThrow(() -> existingAuth = serverFacade.login(loginExisting).authToken());
+            Assertions.assertNotNull(existingAuth);
+        } catch (ResponseException e) {
+            fail("test failed due to exception:" + e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Login Fails With Unregistered User")
+    void loginFails() {
+        newAuth = null;
+        Assertions.assertThrows(ResponseException.class, () -> newAuth = serverFacade.login(loginNew).authToken());
+        Assertions.assertNull(newAuth);
+    }
+
+    @Test
+    @DisplayName("Register Succeeds With Valid Input")
+    void registerSucceeds() {
+        Assertions.assertDoesNotThrow(() -> newAuth = serverFacade.register(registerNew).authToken());
+        Assertions.assertNotNull(newAuth);
+    }
+
+    @Test
+    @DisplayName("Register Fails With Pre-Existing User")
+    void registerFails() {
+        Assertions.assertThrows(ResponseException.class, () -> newAuth = serverFacade.register(registerExisting).authToken());
+        Assertions.assertNull(newAuth);
+    }
+
+    @Test
+    @DisplayName("Logout Succeeds And Prevents Further Access")
+    void logoutSucceeds() {
+        Assertions.assertDoesNotThrow(() -> existingAuth = serverFacade.login(loginExisting).authToken());
+        Assertions.assertDoesNotThrow(() -> serverFacade.logout(existingAuth));
+        Assertions.assertThrows(ResponseException.class, () -> serverFacade.listGames(existingAuth));
+    }
+
+    @Test
+    @DisplayName("List Games Succeeds with Valid Input")
+    void listGamesSucceeds() {
+        try {
+            Assertions.assertEquals(1, serverFacade.listGames(existingAuth).games().size());
+        } catch (ResponseException e) {
+            fail("test failed due to exception:" + e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("ListGames Fails With Bad Auth")
+    void ListGamesFails() {
+        Assertions.assertThrows(ResponseException.class, () -> newAuth = serverFacade.register(registerExisting).authToken());
+        Assertions.assertNull(newAuth);
+    }
+
+    @Test
+    @DisplayName("Clear Removes All Data")
     void clearRemovesAllData() {
         try {
             serverFacade.clear();
             Assertions.assertThrows(ResponseException.class, () -> serverFacade.listGames(existingAuth));
             Assertions.assertThrows(ResponseException.class, () -> serverFacade.login(loginExisting));
-//            existingAuth = serverFacade.register(registerExisting).authToken();
-//            Assertions.assertNull(serverFacade.listGames(existingAuth));
-
+            existingAuth = serverFacade.register(registerExisting).authToken();
+            Assertions.assertEquals(new ArrayList<>(), serverFacade.listGames(existingAuth).games());
         } catch (ResponseException e) {
             fail("test failed due to exception:" + e.getMessage());
         }

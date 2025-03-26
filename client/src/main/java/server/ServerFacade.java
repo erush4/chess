@@ -20,14 +20,19 @@ public class ServerFacade {
     }
 
     private static void writeBody(Object requestObject, String authtoken, HttpURLConnection http) throws IOException {
+        if (authtoken != null) {
+            http.addRequestProperty("authorization", authtoken);
+        }
         if (requestObject != null) {
             http.addRequestProperty("Content-Type", "application/json");
-            http.addRequestProperty("authorization", authtoken);
             String reqData = new Gson().toJson(requestObject);
             try (OutputStream reqBody = http.getOutputStream()) {
                 reqBody.write(reqData.getBytes());
             }
         }
+
+
+
     }
 
     public CreateGameResponse createGame(CreateGameRequest gameRequest, String authtoken) throws ResponseException {
