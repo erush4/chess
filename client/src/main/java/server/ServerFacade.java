@@ -30,9 +30,6 @@ public class ServerFacade {
                 reqBody.write(reqData.getBytes());
             }
         }
-
-
-
     }
 
     public CreateGameResponse createGame(CreateGameRequest gameRequest, String authtoken) throws ResponseException {
