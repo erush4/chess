@@ -104,6 +104,12 @@ public class ServerFacadeTests {
     }
 
     @Test
+    @DisplayName("Logout Fails If Authtoken Doesn't Exist")
+    void logoutFails(){
+        Assertions.assertThrows(ResponseException.class, ()-> serverFacade.logout("not an authtoken"));
+    }
+
+    @Test
     @DisplayName("List Games Succeeds with Valid Input")
     void listGamesSucceeds() {
         try {
