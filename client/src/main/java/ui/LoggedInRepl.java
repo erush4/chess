@@ -13,13 +13,15 @@ public class LoggedInRepl extends ReplTemplate {
     String authtoken;
     String username;
     ServerFacade server;
-    HashMap<Integer, String> games;
+    HashMap<String, Integer> games;
 
     public LoggedInRepl(String authtoken, String username, ServerFacade server) {
         super("logout");
         this.authtoken = authtoken;
         this.username = username;
         this.server = server;
+        games = new HashMap<>();
+        start();
     }
 
     @Override
@@ -57,12 +59,13 @@ public class LoggedInRepl extends ReplTemplate {
         } catch (ResponseException e) {
             return SET_TEXT_COLOR_RED + switch (e.getStatusCode()) {
                 case 401 -> "Your session is invalid. You may need to restart the application.";
+                case 403 -> "A game with this name already exists. Please try again with a different name.";
                 case 500 -> "There was an error on our end. Please try again later.";
                 default -> throw new RuntimeException("bad error code");
             };
         }
-        games.put(response.gameID(), gameName);
-        return RESET_COLOR + "Your game " + SET_TEXT_BOLD + gameName + RESET_TEXT_BOLD_FAINT + "has been successfully created!";
+        games.put(gameName, response.gameID());
+        return RESET_COLOR + "Your game " + SET_TEXT_COLOR_YELLOW + gameName + RESET_COLOR + " has been successfully created!";
     }
 
 
@@ -70,6 +73,7 @@ public class LoggedInRepl extends ReplTemplate {
         if (params.length != 2) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
+
         return "";
     }
 

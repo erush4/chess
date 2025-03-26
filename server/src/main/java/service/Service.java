@@ -6,7 +6,6 @@ import dataaccess.DataAccessException;
 import model.*;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class Service {
@@ -110,7 +109,10 @@ public class Service {
         }
         try {
             verifyAuthData(authToken);
-            int gameID = Math.abs(UUID.randomUUID().hashCode());
+            int gameID = gameName.hashCode();
+            if (dataAccess.getGame(gameID) !=null){
+                throw new ResponseException(403, "already taken");
+            }
             GameData game = new GameData(gameID, null, null, gameName, new ChessGame());
             dataAccess.addGame(game);
             return new CreateGameResponse(gameID);

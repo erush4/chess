@@ -11,6 +11,7 @@ public class StartRepl extends ReplTemplate{
     public StartRepl(String port) {
         super("quit");
         server = new ServerFacade(port);
+        start();
     }
 
     private String login(String[] params) {
@@ -34,7 +35,7 @@ public class StartRepl extends ReplTemplate{
 
         new LoggedInRepl(authtoken, username, server);
 
-        return "Goodbye, " + username;
+        return RESET_COLOR + "Goodbye, " + username;
     }
 
     private String register(String[] params) {
@@ -58,7 +59,7 @@ public class StartRepl extends ReplTemplate{
         String authtoken = response.authToken();
         String username = response.username();
 
-        System.out.println("Welcome, " + username + "! Your account has been created successfully.");
+        System.out.println(RESET_COLOR + "Welcome, " + username + "! Your account has been created successfully.");
         new LoggedInRepl(authtoken, username, server);
         return "Goodbye, " + username;
     }

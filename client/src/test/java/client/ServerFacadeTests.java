@@ -24,6 +24,7 @@ public class ServerFacadeTests {
     private static CreateGameRequest createGame;
     private static JoinGameRequest joinRequest;
     private static int existingGameID;
+    private static CreateGameRequest createNewGame;
 
     @BeforeAll
     public static void init() {
@@ -43,6 +44,7 @@ public class ServerFacadeTests {
         registerExisting = new RegisterRequest(existingName, password, email);
         registerNew = new RegisterRequest(newName, password, email);
         createGame = new CreateGameRequest("game name");
+        createNewGame = new CreateGameRequest("newGame");
     }
 
     @AfterAll
@@ -113,7 +115,7 @@ public class ServerFacadeTests {
     @Test
     @DisplayName("CreateGame Succeeds")
     void createGameSucceeds(){
-        Assertions.assertDoesNotThrow(()-> serverFacade.createGame(createGame, existingAuth));
+        Assertions.assertDoesNotThrow(()-> serverFacade.createGame(createNewGame, existingAuth));
     }
 
     @Test

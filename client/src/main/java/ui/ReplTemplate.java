@@ -11,7 +11,6 @@ abstract class ReplTemplate {
     protected String exitString;
     public ReplTemplate(String exitString){
         this.exitString = exitString;
-        start();
     }
     private String eval(String input) {
         try {
@@ -30,7 +29,6 @@ abstract class ReplTemplate {
     }
 
     void start() {
-        System.out.print(help());
         Scanner scanner = new Scanner(System.in);
         String input = "";
 
