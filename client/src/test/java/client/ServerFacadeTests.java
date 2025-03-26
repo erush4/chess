@@ -111,7 +111,22 @@ public class ServerFacadeTests {
     }
 
     @Test
-    @DisplayName("List Games Succeeds with Valid Input")
+    @DisplayName("CreateGame Succeeds")
+    void createGameSucceeds(){
+        Assertions.assertDoesNotThrow(()-> serverFacade.createGame(createGame, existingAuth));
+    }
+
+    @Test
+    @DisplayName("CreateGame Fails With Bad Input")
+    void createGameFails(){
+        Assertions.assertThrows(
+                ResponseException.class,
+                ()-> serverFacade.createGame(new CreateGameRequest(null), existingAuth)
+        );
+    }
+
+    @Test
+    @DisplayName("ListGames Succeeds with Valid Input")
     void listGamesSucceeds() {
         try {
             Assertions.assertEquals(1, serverFacade.listGames(existingAuth).games().size());
