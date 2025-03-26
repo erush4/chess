@@ -8,5 +8,6 @@ public class Main {
         System.out.println("♕ 240 Chess Server: " + piece);
         Server server = new Server();
         server.run(8080);
+        System.out.println("Server started on port 8080");
     }
 }
