@@ -32,7 +32,7 @@ public class StartRepl extends ReplTemplate{
         String username = response.username();
         System.out.println(RESET_COLOR + "Welcome, " + username);
 
-        new LoggedInRepl(authtoken, username);
+        new LoggedInRepl(authtoken, username, server);
 
         return "Goodbye, " + username;
     }
@@ -59,7 +59,7 @@ public class StartRepl extends ReplTemplate{
         String username = response.username();
 
         System.out.println("Welcome, " + username + "! Your account has been created successfully.");
-        new LoggedInRepl(authtoken, username);
+        new LoggedInRepl(authtoken, username, server);
         return "Goodbye, " + username;
     }
 

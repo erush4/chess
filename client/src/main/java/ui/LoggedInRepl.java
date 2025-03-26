@@ -1,18 +1,25 @@
 package ui;
 
+import model.CreateGameRequest;
+import model.CreateGameResponse;
 import model.ResponseException;
+import server.ServerFacade;
+
+import java.util.HashMap;
 
 import static ui.EscapeSequences.*;
-import static ui.EscapeSequences.SET_TEXT_COLOR_RED;
 
 public class LoggedInRepl extends ReplTemplate {
     String authtoken;
     String username;
+    ServerFacade server;
+    HashMap<Integer, String> games;
 
-    public LoggedInRepl(String authtoken, String username) {
+    public LoggedInRepl(String authtoken, String username, ServerFacade server) {
         super("logout");
         this.authtoken = authtoken;
         this.username = username;
+        this.server = server;
     }
 
     @Override
@@ -42,9 +49,20 @@ public class LoggedInRepl extends ReplTemplate {
         if (params.length != 1) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
-
-
-        return "";
+        String gameName = params[0];
+        var request = new CreateGameRequest(gameName);
+        CreateGameResponse response;
+        try {
+            response = server.createGame(request, authtoken);
+        } catch (ResponseException e) {
+            return SET_TEXT_COLOR_RED + switch (e.getStatusCode()) {
+                case 401 -> "Your session is invalid. You may need to restart the application.";
+                case 500 -> "There was an error on our end. Please try again later.";
+                default -> throw new RuntimeException("bad error code");
+            };
+        }
+        games.put(response.gameID(), gameName);
+        return RESET_COLOR + "Your game " + SET_TEXT_BOLD + gameName + RESET_TEXT_BOLD_FAINT + "has been successfully created!";
     }
 
 
