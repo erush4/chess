@@ -75,7 +75,10 @@ public class LoggedInRepl extends ReplTemplate {
             var request = new JoinGameRequest(color, gameID);
 
             server.joinGame(request, authtoken);
-            return RESET_COLOR + "Successfully joined game #" + SET_TEXT_COLOR_YELLOW + gameID + RESET_COLOR + " as " + SET_TEXT_COLOR_YELLOW + color + RESET_COLOR + ".\n" + new ChessBoard().toString(color);
+            ChessBoard board =  new ChessBoard();
+            board.resetBoard();
+            return RESET_COLOR + "Successfully joined game #" + SET_TEXT_COLOR_YELLOW + gameID + RESET_COLOR + " as "
+                    + SET_TEXT_COLOR_YELLOW + color + RESET_COLOR + ".\n" + board.toString(color);
         } catch (ResponseException e) {
             return SET_TEXT_COLOR_RED + switch (e.getStatusCode()) {
                 case 400 ->
