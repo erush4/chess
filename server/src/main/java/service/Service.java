@@ -109,10 +109,7 @@ public class Service {
         }
         try {
             verifyAuthData(authToken);
-            int gameID = gameName.hashCode();
-            if (dataAccess.getGame(gameID) !=null){
-                throw new ResponseException(403, "already taken");
-            }
+            int gameID = UUID.randomUUID().hashCode();
             GameData game = new GameData(gameID, null, null, gameName, new ChessGame());
             dataAccess.addGame(game);
             return new CreateGameResponse(gameID);
