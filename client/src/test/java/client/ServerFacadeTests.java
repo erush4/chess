@@ -57,11 +57,15 @@ public class ServerFacadeTests {
     void setup() throws ResponseException {
         existingAuth = serverFacade.register(registerExisting).authToken();
         existingGameID = serverFacade.createGame(createGame, existingAuth).gameID();
+
     }
 
     @AfterEach
     void reset() throws ResponseException {
         serverFacade.clear();
+        existingAuth = null;
+        newAuth = null;
+
     }
 
     @Test
@@ -79,7 +83,6 @@ public class ServerFacadeTests {
     @Test
     @DisplayName("Login Fails With Unregistered User")
     void loginFails() {
-        newAuth = null;
         Assertions.assertThrows(ResponseException.class, () -> newAuth = serverFacade.login(loginNew).authToken());
         Assertions.assertNull(newAuth);
     }
