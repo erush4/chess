@@ -139,7 +139,7 @@ public class ServerFacadeTests {
 
     @Test
     @DisplayName("ListGames Fails With Bad Auth")
-    void ListGamesFails() {
+    void listGamesFails() {
         Assertions.assertThrows(ResponseException.class, () -> newAuth = serverFacade.register(registerExisting).authToken());
         Assertions.assertNull(newAuth);
     }

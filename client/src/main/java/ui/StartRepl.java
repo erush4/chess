@@ -73,7 +73,7 @@ public class StartRepl extends ReplTemplate{
     }
 
     @Override
-    String Functions(String command, String[] params) {
+    String functions(String command, String[] params) {
             return switch (command) {
             case "quit" -> RESET_COLOR + "Have a nice day! ☺";
             case "login" -> login(params);

@@ -31,7 +31,7 @@ public class LoggedInRepl extends ReplTemplate {
     }
 
     @Override
-    String Functions(String command, String[] params) {
+    String functions(String command, String[] params) {
         return switch (command) {
             case "create" -> create(params);
             case "list" -> list(params);
