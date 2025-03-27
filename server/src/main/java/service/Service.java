@@ -109,7 +109,7 @@ public class Service {
         }
         try {
             verifyAuthData(authToken);
-            int gameID = UUID.randomUUID().hashCode();
+            int gameID = Math.abs(UUID.randomUUID().hashCode());
             GameData game = new GameData(gameID, null, null, gameName, new ChessGame());
             dataAccess.addGame(game);
             return new CreateGameResponse(gameID);
