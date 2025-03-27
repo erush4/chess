@@ -22,7 +22,7 @@ abstract class ReplTemplate {
                 command = "help";
             }
             var params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            return Functions(command, params);
+            return functions(command, params);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -52,6 +52,6 @@ abstract class ReplTemplate {
 
     abstract String help();
 
-    abstract String Functions(String command, String[] params) throws ResponseException;
+    abstract String functions(String command, String[] params) throws ResponseException;
 }
 
