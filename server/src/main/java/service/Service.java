@@ -126,7 +126,7 @@ public class Service {
             ChessGame.TeamColor teamColor = joinRequest.playerColor();
             String userName = authData.username();
             GameData newGameData;
-            if (game == null || joinRequest.playerColor() == null) {
+            if (game == null) {
                 throw new ResponseException(400, "bad request");
             }
             newGameData = switch (teamColor) {
@@ -142,6 +142,7 @@ public class Service {
                     }
                     yield new GameData(gameID, game.whiteUsername(), userName, game.gameName(), game.game());
                 }
+
             };
             dataAccess.updateGame(newGameData);
         } catch (DataAccessException e) {

@@ -5,18 +5,25 @@ import chess.ChessGame;
 import model.*;
 import server.ServerFacade;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Objects;
+
 import static ui.EscapeSequences.*;
 
 public class LoggedInRepl extends ReplTemplate {
     String authtoken;
     String username;
     ServerFacade server;
+    ArrayList<GameData> games;
+    HashMap<Integer, Integer> gameIDs;
 
     public LoggedInRepl(String authtoken, String username, ServerFacade server) {
         super("logout");
         this.authtoken = authtoken;
         this.username = username;
         this.server = server;
+        this.gameIDs = new HashMap<>();
         start();
     }
 
@@ -59,8 +66,10 @@ public class LoggedInRepl extends ReplTemplate {
                 default -> throw new RuntimeException("bad error code");
             };
         }
+        gameIDs.put(0, response.gameID());
         return RESET_COLOR + "Your game " + SET_TEXT_COLOR_YELLOW + gameName + RESET_COLOR +
-                " has been successfully created with ID " + SET_TEXT_COLOR_YELLOW + response.gameID() + RESET_COLOR + "!";
+                " has been successfully created!\nYou can join it now with temporary ID #" +
+                SET_TEXT_COLOR_YELLOW + "0" +RESET_COLOR + ".";
     }
 
 
@@ -69,15 +78,16 @@ public class LoggedInRepl extends ReplTemplate {
             if (params.length != 2) {
                 return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
             }
-            int gameID = Integer.parseInt(params[0]);
+            int clientGameID = Integer.parseInt(params[0]);
             ChessGame.TeamColor color;
             color = ChessGame.TeamColor.valueOf(params[1].toUpperCase());
+            int gameID = gameIDs.get(clientGameID);
             var request = new JoinGameRequest(color, gameID);
 
             server.joinGame(request, authtoken);
-            ChessBoard board =  new ChessBoard();
+            ChessBoard board = new ChessBoard();
             board.resetBoard();
-            return RESET_COLOR + "Successfully joined game #" + SET_TEXT_COLOR_YELLOW + gameID + RESET_COLOR + " as "
+            return RESET_COLOR + "Successfully joined game #" + SET_TEXT_COLOR_YELLOW + clientGameID + RESET_COLOR + " as "
                     + SET_TEXT_COLOR_YELLOW + color + RESET_COLOR + ".\n" + board.toString(color);
         } catch (ResponseException e) {
             return SET_TEXT_COLOR_RED + switch (e.getStatusCode()) {
@@ -94,14 +104,30 @@ public class LoggedInRepl extends ReplTemplate {
             return SET_TEXT_COLOR_RED + "Your game ID is not a number. Please try again.";
         } catch (IllegalArgumentException e) {
             return SET_TEXT_COLOR_RED + "You have improperly specified the color. Please ensure you spelled it correctly.";
+        } catch (NullPointerException e) {
+            return SET_TEXT_COLOR_RED + "Please use the command \"" + SET_TEXT_COLOR_BLUE + "list" + SET_TEXT_COLOR_RED +
+                    "\" to get the list of joinable games before observing.";
         }
+
     }
 
     String observe(String[] params) {
         if (params.length != 1) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
-        return SET_TEXT_COLOR_RED + "This functionality will be implemented in phase 6.";
+        try {
+            int clientGameID = Integer.parseInt(params[0]);
+            int gameID = gameIDs.get(clientGameID);
+            ChessBoard board = new ChessBoard();
+            board.resetBoard();
+            return RESET_COLOR + "Now observing game #" + SET_TEXT_COLOR_YELLOW + clientGameID + RESET_COLOR
+                    + RESET_COLOR + ".\n" + board.toString(ChessGame.TeamColor.WHITE);
+        } catch (NumberFormatException e) {
+            return SET_TEXT_COLOR_RED + "Your game ID is not a number. Please try again.";
+        } catch (NullPointerException e) {
+            return SET_TEXT_COLOR_RED + "Please use the command \"" + SET_TEXT_COLOR_BLUE + "list" + SET_TEXT_COLOR_RED +
+                    "\" to get the list of joinable games before observing.";
+        }
     }
 
     String list(String[] params) {
@@ -118,6 +144,20 @@ public class LoggedInRepl extends ReplTemplate {
                 default -> throw new RuntimeException("bad error code");
             };
         }
-        return RESET_COLOR + response.toString();
+        games = (ArrayList<GameData>) response.games();
+        StringBuilder string = new StringBuilder(RESET_COLOR + "Game List:\n");
+        gameIDs.clear();
+        for (GameData game : games) {
+            int clientGameID = games.indexOf(game) + 1;
+            gameIDs.put(clientGameID, game.gameID());
+            string.append("Game #" + SET_TEXT_COLOR_YELLOW).append(clientGameID).append(RESET_COLOR + "\n");
+            string.append("\tName: " + SET_TEXT_COLOR_YELLOW).append(game.gameName()).append(RESET_COLOR +"\n");
+            string.append("\tWhite Player: "+SET_TEXT_COLOR_YELLOW).append(nameCheck(game.whiteUsername())).append(RESET_COLOR+ "\n");
+            string.append("\tBlack Player: " + SET_TEXT_COLOR_YELLOW).append(nameCheck(game.blackUsername())).append(RESET_COLOR + "\n\n");
+        }
+        return string.toString();
+    }
+    private String nameCheck (String name){
+        return Objects.requireNonNullElse(name, "");
     }
 }
