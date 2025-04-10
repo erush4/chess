@@ -1,8 +1,7 @@
 package server.websocket;
 
-import org.eclipse.jetty.websocket.api.Session;
-
 import java.io.IOException;
+import org.eclipse.jetty.websocket.api.Session;
 
 public class Connection {
     public String userName;
