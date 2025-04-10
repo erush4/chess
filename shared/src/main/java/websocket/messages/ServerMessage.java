@@ -23,11 +23,6 @@ public class ServerMessage {
         this.message = null;
     }
 
-    public ServerMessage(ServerMessageType type, String msg){
-        this.serverMessageType = type;
-        this.message = msg;
-    }
-
     public ServerMessageType getServerMessageType() {
         return this.serverMessageType;
     }

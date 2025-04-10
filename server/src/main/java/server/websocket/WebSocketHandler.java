@@ -9,6 +9,7 @@ import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import service.Service;
 import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
+import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
@@ -28,17 +29,17 @@ public class WebSocketHandler {
     public void onMessage(Session session, String msg) throws ResponseException {
         UserGameCommand command = new Gson().fromJson(msg, UserGameCommand.class);
         switch (command.getCommandType()) {
-            case LEAVE -> leave(command);
-            case RESIGN -> resign(command);
+            case LEAVE -> leave(command, session);
+            case RESIGN -> resign(command, session);
             case CONNECT -> connect(command, session);
             case MAKE_MOVE -> {
                 var moveCommand = new Gson().fromJson(msg, MoveCommand.class);
-                move(moveCommand);
+                move(moveCommand, session);
             }
         }
     }
 
-    private void leave(UserGameCommand command) throws ResponseException {
+    private void leave(UserGameCommand command, Session session) throws ResponseException {
         var authToken = command.getAuthToken();
         int gameID = command.getGameID();
         var authData = service.verifyAuthData(authToken);
@@ -46,7 +47,7 @@ public class WebSocketHandler {
         var connections = gameConnections.get(gameID);
         connections.remove(userName);
         String msg = userName + " has left the game";
-        var message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
         try {
             connections.broadcast(userName, message);
         } catch (IOException e) {
@@ -54,7 +55,7 @@ public class WebSocketHandler {
         }
     }
 
-    private void resign(UserGameCommand command) throws ResponseException {
+    private void resign(UserGameCommand command, Session session) throws ResponseException {
         var authToken = command.getAuthToken();
         int gameID = command.getGameID();
         var game = service.getGame(authToken, gameID);
@@ -64,7 +65,7 @@ public class WebSocketHandler {
         game.game().setGameWon(true);
         service.updateGame(authToken, game);
         String msg = userName + " has resigned";
-        var message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
         try {
             connections.broadcast(userName, message);
         } catch (IOException e) {
@@ -72,7 +73,7 @@ public class WebSocketHandler {
         }
     }
 
-    private void move(MoveCommand command) throws ResponseException {
+    private void move(MoveCommand command, Session session) throws ResponseException {
         var authToken = command.getAuthToken();
         int gameID = command.getGameID();
         var authData = service.verifyAuthData(authToken);
@@ -88,7 +89,7 @@ public class WebSocketHandler {
         var connections = gameConnections.get(gameID);
         String userName = authData.username();
         String msg = userName + " has moved to " + move.getEndPosition();
-        var message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
         try {
             connections.broadcast(userName, message);
         } catch (IOException e) {
@@ -118,7 +119,7 @@ public class WebSocketHandler {
         }
 
         String msg = userName + " has joined as " + joinType;
-        var message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
         try {
             connections.broadcast(userName, message);
         } catch (IOException e) {
