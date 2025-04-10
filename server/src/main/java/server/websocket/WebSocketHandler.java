@@ -11,8 +11,8 @@ import service.Service;
 import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
-import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -53,12 +53,12 @@ public class WebSocketHandler {
             return;
         }
         String userName = getUserName(authToken, session);
-        var connections = rooms.get(gameID);
-        if (connections == null) {
-            connections = new ConnectionManager();
-            rooms.put(gameID, connections);
+        var room = rooms.get(gameID);
+        if (room == null) {
+            room = new ConnectionManager();
+            rooms.put(gameID, room);
         }
-        connections.add(userName, session);
+        room.add(userName, session);
         String joinType;
         if (Objects.equals(game.blackUsername(), userName)) {
             joinType = "BLACK";
@@ -67,11 +67,12 @@ public class WebSocketHandler {
         } else {
             joinType = "an observer";
         }
-
         String msg = userName + " has joined as " + joinType;
-        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        var message = new NotificationMessage(msg);
+        var loadMessage = new LoadGameMessage(game);
         try {
-            connections.broadcast(userName, message);
+            room.send(userName, loadMessage);
+            room.broadcast(userName, message);
         } catch (IOException ignored) {
         }
     }
@@ -85,7 +86,7 @@ public class WebSocketHandler {
             var room = rooms.get(gameID);
             room.remove(userName);
             String msg = userName + " has left the game";
-            var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+            var message = new NotificationMessage(msg);
             room.broadcast(userName, message);
         } catch (IOException ignored) {
         }
@@ -102,7 +103,7 @@ public class WebSocketHandler {
             return;
         }
         String userName = getUserName(authToken, session);
-        var connections = rooms.get(gameID);
+        var room = rooms.get(gameID);
         game.game().setGameWon(true);
         try {
             service.updateGame(authToken, game);
@@ -110,9 +111,9 @@ public class WebSocketHandler {
             error("Error while updating game", session);
         }
         String msg = userName + " has resigned";
-        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        var message = new NotificationMessage(msg);
         try {
-            connections.broadcast(userName, message);
+            room.broadcast(userName, message);
         } catch (IOException ignored) {
         }
     }
@@ -140,12 +141,14 @@ public class WebSocketHandler {
             error("Error while updating game", session);
             return;
         }
-        var connections = rooms.get(gameID);
+        var room = rooms.get(gameID);
         String userName = getUserName(authToken, session);
         String msg = userName + " has moved to " + move.getEndPosition();
-        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        var message = new NotificationMessage(msg);
+        var loadMessage = new LoadGameMessage(game);
         try {
-            connections.broadcast(userName, message);
+            room.broadcast(null, loadMessage);
+            room.broadcast(userName, message);
         } catch (IOException ignored) {
         }
     }
@@ -162,7 +165,7 @@ public class WebSocketHandler {
 
     private void error(String msg, Session session) {
         try {
-            var message = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, msg);
+            var message = new ErrorMessage(msg);
             session.getRemote().sendString(message.toString());
         } catch (IOException ignored) {
         }

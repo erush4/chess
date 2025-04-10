@@ -34,4 +34,13 @@ public class ConnectionManager {
     public void remove(String userName) {
         connections.remove(userName);
     }
+
+    public void send(String userName, ServerMessage msg) throws IOException{
+        var connection = connections.get(userName);
+        if (connection.session.isOpen()) {
+            connection.send(msg.toString());
+        } else {
+            connections.remove(userName);
+        }
+    }
 }
