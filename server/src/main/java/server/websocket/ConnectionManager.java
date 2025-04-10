@@ -15,7 +15,7 @@ public class ConnectionManager {
         connections.put(userName, connection); //later, see if you can change this to just be the session
     }
 
-    public void broadcast (String excludeUserName, ServerMessage msg) throws IOException {
+    public void broadcast(String excludeUserName, ServerMessage msg) throws IOException {
         var closedConnections = new ArrayList<Connection>();
         for (var c : connections.values()){
             if (c.session.isOpen()){
@@ -27,7 +27,11 @@ public class ConnectionManager {
             }
         }
         for (var c : closedConnections){
-            connections.remove(c.userName);
+            remove(c.userName);
         }
+    }
+
+    public void remove(String userName){
+        connections.remove(userName);
     }
 }
