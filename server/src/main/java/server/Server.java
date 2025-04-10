@@ -3,8 +3,8 @@ package server;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseDataAccess;
-import dataaccess.MemoryDataAccess;
 import model.*;
+import server.websocket.WebSocketHandler;
 import service.Service;
 import spark.Request;
 import spark.Response;
@@ -12,6 +12,7 @@ import spark.Spark;
 
 public class Server {
     private final Service service;
+    private final WebSocketHandler webSocketHandler;
 
     public Server() {
         try {
@@ -19,6 +20,7 @@ public class Server {
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
+        this.webSocketHandler = new WebSocketHandler(service);
     }
 
     public int run(int desiredPort) {

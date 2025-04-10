@@ -20,38 +20,41 @@ public class WebSocketHandler {
     HashMap<Integer, ConnectionManager> gameConnections = new HashMap<>();
     Service service;
 
-    public WebSocketHandler(Service service){
+    public WebSocketHandler(Service service) {
         this.service = service;
     }
+
     @OnWebSocketMessage
     public void onMessage(Session session, String msg) throws ResponseException {
         UserGameCommand command = new Gson().fromJson(msg, UserGameCommand.class);
-        switch (command.getCommandType()){
-            case LEAVE -> leave(command, session);
-            case RESIGN -> resign(command, session);
+        switch (command.getCommandType()) {
+            case LEAVE -> leave(command);
+            case RESIGN -> resign(command);
             case CONNECT -> connect(command, session);
             case MAKE_MOVE -> {
                 var moveCommand = new Gson().fromJson(msg, MoveCommand.class);
-                move(moveCommand, session);
+                move(moveCommand);
             }
         }
-
     }
 
-    private void leave(UserGameCommand command, Session session) throws ResponseException {
+    private void leave(UserGameCommand command) throws ResponseException {
         var authToken = command.getAuthToken();
         int gameID = command.getGameID();
         var authData = service.verifyAuthData(authToken);
         var userName = authData.username();
         var connections = gameConnections.get(gameID);
+        connections.remove(userName);
         String msg = userName + " has left the game";
         var message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
         try {
             connections.broadcast(userName, message);
-        } catch (IOException ignored){}
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
     }
 
-    private void resign(UserGameCommand command, Session session) throws ResponseException {
+    private void resign(UserGameCommand command) throws ResponseException {
         var authToken = command.getAuthToken();
         int gameID = command.getGameID();
         var game = service.getGame(authToken, gameID);
@@ -62,12 +65,14 @@ public class WebSocketHandler {
         service.updateGame(authToken, game);
         String msg = userName + " has resigned";
         var message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
-        try{
+        try {
             connections.broadcast(userName, message);
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
     }
 
-    private void move(MoveCommand command, Session session) throws ResponseException {
+    private void move(MoveCommand command) throws ResponseException {
         var authToken = command.getAuthToken();
         int gameID = command.getGameID();
         var authData = service.verifyAuthData(authToken);
@@ -86,27 +91,29 @@ public class WebSocketHandler {
         var message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
         try {
             connections.broadcast(userName, message);
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
     }
 
-    private void connect(UserGameCommand command, Session session) throws ResponseException{
+    private void connect(UserGameCommand command, Session session) throws ResponseException {
         var authToken = command.getAuthToken();
         int gameID = command.getGameID();
         var authData = service.verifyAuthData(authToken);
         var game = service.getGame(authToken, gameID);
         String userName = authData.username();
         var connections = gameConnections.get(gameID);
-        if (connections == null){
+        if (connections == null) {
             connections = new ConnectionManager();
             gameConnections.put(gameID, connections);
         }
         connections.add(userName, session);
         String joinType;
-        if (Objects.equals(game.blackUsername(), userName)){
+        if (Objects.equals(game.blackUsername(), userName)) {
             joinType = "BLACK";
         } else if (Objects.equals(game.whiteUsername(), userName)) {
             joinType = "WHITE";
-        } else{
+        } else {
             joinType = "an observer";
         }
 
@@ -114,6 +121,8 @@ public class WebSocketHandler {
         var message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
         try {
             connections.broadcast(userName, message);
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
     }
 }
