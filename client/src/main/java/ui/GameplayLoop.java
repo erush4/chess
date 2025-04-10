@@ -5,9 +5,10 @@ import model.ResponseException;
 import static ui.EscapeSequences.*;
 import static ui.EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY;
 
-public class GameplayRepl extends ReplTemplate {
-    public GameplayRepl() {
+public class GameplayLoop extends Repl {
+    public GameplayLoop() {
         super("leave");
+        start();
     }
 
     private String redraw() {

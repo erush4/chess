@@ -11,14 +11,14 @@ import java.util.Objects;
 
 import static ui.EscapeSequences.*;
 
-public class LoggedInRepl extends ReplTemplate {
+public class LoggedInLoop extends Repl {
     String authtoken;
     String username;
     ServerFacade server;
     ArrayList<GameData> games;
     HashMap<Integer, Integer> gameIDs;
 
-    public LoggedInRepl(String authtoken, String username, ServerFacade server) {
+    public LoggedInLoop(String authtoken, String username, ServerFacade server) {
         super("logout");
         this.authtoken = authtoken;
         this.username = username;

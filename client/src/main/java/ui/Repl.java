@@ -7,9 +7,9 @@ import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-abstract class ReplTemplate {
+abstract class Repl {
     protected String exitString;
-    public ReplTemplate(String exitString){
+    public Repl(String exitString){
         this.exitString = exitString;
     }
     private String eval(String input) {
