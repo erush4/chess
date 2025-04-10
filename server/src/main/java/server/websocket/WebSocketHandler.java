@@ -2,8 +2,6 @@ package server.websocket;
 
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import dataaccess.DataAccess;
 import model.ResponseException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -40,8 +38,17 @@ public class WebSocketHandler {
 
     }
 
-    private void leave(UserGameCommand command, Session session) {
-
+    private void leave(UserGameCommand command, Session session) throws ResponseException {
+        var authToken = command.getAuthToken();
+        int gameID = command.getGameID();
+        var authData = service.verifyAuthData(authToken);
+        var userName = authData.username();
+        var connections = gameConnections.get(gameID);
+        String msg = userName + " has left the game";
+        var message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        try {
+            connections.broadcast(userName, message);
+        } catch (IOException ignored){}
     }
 
     private void resign(UserGameCommand command, Session session) {
