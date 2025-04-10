@@ -29,7 +29,7 @@ public class WebSocketHandler {
     }
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String msg) {
+    public void onMessage(Session session, String msg) throws ResponseException {
         UserGameCommand command = new Gson().fromJson(msg, UserGameCommand.class);
         switch (command.getCommandType()) {
             case LEAVE -> leave(command, session);
@@ -42,12 +42,15 @@ public class WebSocketHandler {
         }
     }
 
-    private void connect(UserGameCommand command, Session session) {
+    private void connect(UserGameCommand command, Session session) throws ResponseException {
         var authToken = command.getAuthToken();
         int gameID = command.getGameID();
         GameData game;
         try {
             game = service.getGame(authToken, gameID);
+            if (game == null) {
+                throw new ResponseException(500, "bad game");
+            }
         } catch (ResponseException e) {
             error("Error getting game", session);
             return;
@@ -73,11 +76,12 @@ public class WebSocketHandler {
         try {
             room.send(userName, loadMessage);
             room.broadcast(userName, message);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
         }
     }
 
-    private void leave(UserGameCommand command, Session session) {
+    private void leave(UserGameCommand command, Session session) throws ResponseException {
         try {
             var authToken = command.getAuthToken();
             int gameID = command.getGameID();
@@ -88,11 +92,12 @@ public class WebSocketHandler {
             String msg = userName + " has left the game";
             var message = new NotificationMessage(msg);
             room.broadcast(userName, message);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
         }
     }
 
-    private void resign(UserGameCommand command, Session session) {
+    private void resign(UserGameCommand command, Session session) throws ResponseException {
         var authToken = command.getAuthToken();
         int gameID = command.getGameID();
         GameData game;
@@ -114,11 +119,12 @@ public class WebSocketHandler {
         var message = new NotificationMessage(msg);
         try {
             room.broadcast(userName, message);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
         }
     }
 
-    private void move(MoveCommand command, Session session) {
+    private void move(MoveCommand command, Session session) throws ResponseException {
         int gameID = command.getGameID();
         var authToken = command.getAuthToken();
         GameData game;
@@ -149,11 +155,12 @@ public class WebSocketHandler {
         try {
             room.broadcast(null, loadMessage);
             room.broadcast(userName, message);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
         }
     }
 
-    private String getUserName(String authToken, Session session) {
+    private String getUserName(String authToken, Session session) throws ResponseException {
         try {
             var authData = service.verifyAuthData(authToken);
             return authData.username();
@@ -163,11 +170,21 @@ public class WebSocketHandler {
         }
     }
 
-    private void error(String msg, Session session) {
+    private void error(String msg, Session session) throws ResponseException {
         try {
             var message = new ErrorMessage(msg);
             session.getRemote().sendString(message.toString());
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
+    }
+
+    private void notification(String msg, Session session) throws ResponseException {
+        try {
+            var message = new NotificationMessage(msg);
+            session.getRemote().sendString(message.toString());
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
         }
     }
 }

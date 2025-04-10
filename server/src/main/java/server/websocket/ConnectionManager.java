@@ -16,6 +16,7 @@ public class ConnectionManager {
     }
 
     public void broadcast(String excludeUserName, ServerMessage msg) throws IOException {
+
         var closedConnections = new ArrayList<Connection>();
         for (var c : connections.values()) {
             if (c.session.isOpen()) {
@@ -29,13 +30,14 @@ public class ConnectionManager {
         for (var c : closedConnections) {
             remove(c.userName);
         }
+
     }
 
     public void remove(String userName) {
         connections.remove(userName);
     }
 
-    public void send(String userName, ServerMessage msg) throws IOException{
+    public void send(String userName, ServerMessage msg) throws IOException {
         var connection = connections.get(userName);
         if (connection.session.isOpen()) {
             connection.send(msg.toString());
