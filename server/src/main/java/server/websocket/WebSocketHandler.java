@@ -135,8 +135,21 @@ public class WebSocketHandler {
             return;
         }
         var move = command.getMove();
+        String userName = getUserName(authToken, session);
         try {
-            game.game().makeMove(move);
+            var teamTurn = game.game().getTeamTurn();
+
+            String expectedName = switch (teamTurn) {
+                case BLACK -> game.blackUsername();
+                case WHITE -> game.whiteUsername();
+            };
+
+            if (Objects.equals(userName, expectedName)) {
+                game.game().makeMove(move);
+            }
+            else{
+                throw new InvalidMoveException();
+            }
         } catch (InvalidMoveException e) {
             error("Error: invalid move", session);
             return;
@@ -148,7 +161,6 @@ public class WebSocketHandler {
             return;
         }
         var room = rooms.get(gameID);
-        String userName = getUserName(authToken, session);
         String msg = userName + " has moved to " + move.getEndPosition();
         var message = new NotificationMessage(msg);
         var loadMessage = new LoadGameMessage(game);
