@@ -2,6 +2,7 @@ package server.websocket;
 
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
+import model.GameData;
 import model.ResponseException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -9,6 +10,7 @@ import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import service.Service;
 import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
@@ -16,9 +18,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
 
+
 @WebSocket
 public class WebSocketHandler {
-    HashMap<Integer, ConnectionManager> gameConnections = new HashMap<>();
+    HashMap<Integer, ConnectionManager> rooms = new HashMap<>();
     Service service;
 
     public WebSocketHandler(Service service) {
@@ -26,7 +29,7 @@ public class WebSocketHandler {
     }
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String msg) throws ResponseException {
+    public void onMessage(Session session, String msg) {
         UserGameCommand command = new Gson().fromJson(msg, UserGameCommand.class);
         switch (command.getCommandType()) {
             case LEAVE -> leave(command, session);
@@ -39,74 +42,21 @@ public class WebSocketHandler {
         }
     }
 
-    private void leave(UserGameCommand command, Session session) throws ResponseException {
+    private void connect(UserGameCommand command, Session session) {
         var authToken = command.getAuthToken();
         int gameID = command.getGameID();
-        var authData = service.verifyAuthData(authToken);
-        var userName = authData.username();
-        var connections = gameConnections.get(gameID);
-        connections.remove(userName);
-        String msg = userName + " has left the game";
-        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        GameData game;
         try {
-            connections.broadcast(userName, message);
-        } catch (IOException e) {
-            throw new ResponseException(500, e.getMessage());
-        }
-    }
-
-    private void resign(UserGameCommand command, Session session) throws ResponseException {
-        var authToken = command.getAuthToken();
-        int gameID = command.getGameID();
-        var game = service.getGame(authToken, gameID);
-        var authData = service.verifyAuthData(authToken);
-        var userName = authData.username();
-        var connections = gameConnections.get(gameID);
-        game.game().setGameWon(true);
-        service.updateGame(authToken, game);
-        String msg = userName + " has resigned";
-        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
-        try {
-            connections.broadcast(userName, message);
-        } catch (IOException e) {
-            throw new ResponseException(500, e.getMessage());
-        }
-    }
-
-    private void move(MoveCommand command, Session session) throws ResponseException {
-        var authToken = command.getAuthToken();
-        int gameID = command.getGameID();
-        var authData = service.verifyAuthData(authToken);
-        var game = service.getGame(authToken, gameID);
-
-        var move = command.getMove();
-        try {
-            game.game().makeMove(move);
-        } catch (InvalidMoveException ignored) {
+            game = service.getGame(authToken, gameID);
+        } catch (ResponseException e) {
+            error("Error getting game", session);
             return;
         }
-        service.updateGame(authToken, game);
-        var connections = gameConnections.get(gameID);
-        String userName = authData.username();
-        String msg = userName + " has moved to " + move.getEndPosition();
-        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
-        try {
-            connections.broadcast(userName, message);
-        } catch (IOException e) {
-            throw new ResponseException(500, e.getMessage());
-        }
-    }
-
-    private void connect(UserGameCommand command, Session session) throws ResponseException {
-        var authToken = command.getAuthToken();
-        int gameID = command.getGameID();
-        var authData = service.verifyAuthData(authToken);
-        var game = service.getGame(authToken, gameID);
-        String userName = authData.username();
-        var connections = gameConnections.get(gameID);
+        String userName = getUserName(authToken, session);
+        var connections = rooms.get(gameID);
         if (connections == null) {
             connections = new ConnectionManager();
-            gameConnections.put(gameID, connections);
+            rooms.put(gameID, connections);
         }
         connections.add(userName, session);
         String joinType;
@@ -122,8 +72,99 @@ public class WebSocketHandler {
         var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
         try {
             connections.broadcast(userName, message);
-        } catch (IOException e) {
-            throw new ResponseException(500, e.getMessage());
+        } catch (IOException ignored) {
+        }
+    }
+
+    private void leave(UserGameCommand command, Session session) {
+        try {
+            var authToken = command.getAuthToken();
+            int gameID = command.getGameID();
+
+            String userName = getUserName(authToken, session);
+            var room = rooms.get(gameID);
+            room.remove(userName);
+            String msg = userName + " has left the game";
+            var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+            room.broadcast(userName, message);
+        } catch (IOException ignored) {
+        }
+    }
+
+    private void resign(UserGameCommand command, Session session) {
+        var authToken = command.getAuthToken();
+        int gameID = command.getGameID();
+        GameData game;
+        try {
+            game = service.getGame(authToken, gameID);
+        } catch (ResponseException e) {
+            error("Error while getting game data", session);
+            return;
+        }
+        String userName = getUserName(authToken, session);
+        var connections = rooms.get(gameID);
+        game.game().setGameWon(true);
+        try {
+            service.updateGame(authToken, game);
+        } catch (ResponseException e) {
+            error("Error while updating game", session);
+        }
+        String msg = userName + " has resigned";
+        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        try {
+            connections.broadcast(userName, message);
+        } catch (IOException ignored) {
+        }
+    }
+
+    private void move(MoveCommand command, Session session) {
+        int gameID = command.getGameID();
+        var authToken = command.getAuthToken();
+        GameData game;
+        try {
+            game = service.getGame(authToken, gameID);
+        } catch (ResponseException e) {
+            error("Error while getting game", session);
+            return;
+        }
+        var move = command.getMove();
+        try {
+            game.game().makeMove(move);
+        } catch (InvalidMoveException e) {
+            error("Error: invalid move", session);
+            return;
+        }
+        try {
+            service.updateGame(authToken, game);
+        } catch (ResponseException e) {
+            error("Error while updating game", session);
+            return;
+        }
+        var connections = rooms.get(gameID);
+        String userName = getUserName(authToken, session);
+        String msg = userName + " has moved to " + move.getEndPosition();
+        var message = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        try {
+            connections.broadcast(userName, message);
+        } catch (IOException ignored) {
+        }
+    }
+
+    private String getUserName(String authToken, Session session) {
+        try {
+            var authData = service.verifyAuthData(authToken);
+            return authData.username();
+        } catch (ResponseException e) {
+            error("Error: unauthorized", session);
+            return "";
+        }
+    }
+
+    private void error(String msg, Session session) {
+        try {
+            var message = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, msg);
+            session.getRemote().sendString(message.toString());
+        } catch (IOException ignored) {
         }
     }
 }
