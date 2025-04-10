@@ -14,6 +14,7 @@ public class ChessGame {
     TeamColor teamTurn;
     ChessBoard board;
     ChessMove lastMove;
+    boolean gameWon;
 
     @Override
     public boolean equals(Object o) {
@@ -34,6 +35,7 @@ public class ChessGame {
         board = new ChessBoard();
         board.resetBoard();
         lastMove = null;
+        gameWon = false;
     }
 
     /**
@@ -96,6 +98,9 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        if(gameWon){
+           throw new InvalidMoveException();
+        }
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece piece = board.getPiece(startPosition);
         if (piece == null || piece.getTeamColor() != teamTurn) { //only move on your turn
@@ -204,5 +209,9 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return board;
+    }
+
+    public void setGameWon(boolean gameWon) {
+        this.gameWon = gameWon;
     }
 }

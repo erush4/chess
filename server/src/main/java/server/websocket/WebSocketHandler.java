@@ -51,7 +51,20 @@ public class WebSocketHandler {
         } catch (IOException ignored){}
     }
 
-    private void resign(UserGameCommand command, Session session) {
+    private void resign(UserGameCommand command, Session session) throws ResponseException {
+        var authToken = command.getAuthToken();
+        int gameID = command.getGameID();
+        var game = service.getGame(authToken, gameID);
+        var authData = service.verifyAuthData(authToken);
+        var userName = authData.username();
+        var connections = gameConnections.get(gameID);
+        game.game().setGameWon(true);
+        service.updateGame(authToken, game);
+        String msg = userName + " has resigned";
+        var message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        try{
+            connections.broadcast(userName, message);
+        } catch (IOException ignored) {}
     }
 
     private void move(MoveCommand command, Session session) throws ResponseException {
