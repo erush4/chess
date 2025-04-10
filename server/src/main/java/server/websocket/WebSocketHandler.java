@@ -1,12 +1,15 @@
 package server.websocket;
 
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import dataaccess.DataAccess;
 import model.ResponseException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import service.Service;
+import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
@@ -29,7 +32,10 @@ public class WebSocketHandler {
             case LEAVE -> leave(command, session);
             case RESIGN -> resign(command, session);
             case CONNECT -> connect(command, session);
-            case MAKE_MOVE -> move(command, session);
+            case MAKE_MOVE -> {
+                var moveCommand = new Gson().fromJson(msg, MoveCommand.class);
+                move(moveCommand, session);
+            }
         }
 
     }
@@ -41,7 +47,26 @@ public class WebSocketHandler {
     private void resign(UserGameCommand command, Session session) {
     }
 
-    private void move(UserGameCommand command, Session session) {
+    private void move(MoveCommand command, Session session) throws ResponseException {
+        var authToken = command.getAuthToken();
+        int gameID = command.getGameID();
+        var authData = service.verifyAuthData(authToken);
+        var game = service.getGame(authToken, gameID);
+
+        var move = command.getMove();
+        try {
+            game.game().makeMove(move);
+        } catch (InvalidMoveException ignored) {
+            return;
+        }
+        service.updateGame(authToken, game);
+        var connections = gameConnections.get(gameID);
+        String userName = authData.username();
+        String msg = userName + " has moved to " + move.getEndPosition();
+        var message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        try {
+            connections.broadcast(userName, message);
+        } catch (IOException ignored) {}
     }
 
     private void connect(UserGameCommand command, Session session) throws ResponseException{
@@ -55,7 +80,7 @@ public class WebSocketHandler {
             connections = new ConnectionManager();
             gameConnections.put(gameID, connections);
         }
-
+        connections.add(userName, session);
         String joinType;
         if (Objects.equals(game.blackUsername(), userName)){
             joinType = "BLACK";
