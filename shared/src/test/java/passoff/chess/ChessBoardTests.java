@@ -28,15 +28,6 @@ public class ChessBoardTests {
     }
 
     @Test
-    @DisplayName("Print Test")
-    public void print(){
-        var board = new ChessBoard();
-        board.resetBoard();
-        System.out.println(board.toString(ChessGame.TeamColor.WHITE));
-        System.out.println(board.toString(ChessGame.TeamColor.BLACK));
-
-    }
-    @Test
     @DisplayName("Reset Board")
     public void defaultGameBoard() {
         var expectedBoard = TestUtilities.defaultBoard();
