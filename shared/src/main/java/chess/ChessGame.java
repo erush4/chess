@@ -228,13 +228,13 @@ public class ChessGame {
                     string.append(" ").append((char) ('h' - i)).append("\u2003");
                 }
                 string.append(" a " + EMPTY + RESET_COLOR + "\n");
-                boolean isDark = false;
+                boolean isDark = true;
                 for (int row = 1; row <= 8; row++) {
                     string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK);
                     string.append(" ").append(row).append(" ");
                     isDark = !isDark;
                     for (int col = 8; col >= 1; col--) {
-                        isDark = squareToString(string, isDark, row, col, spaces);
+                        isDark = squareToString(string, isDark, row, col, spaces, position);
                     }
                     string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK);
                     string.append(" ").append(row).append("\u2003").append(RESET_COLOR).append("\n");
@@ -251,13 +251,13 @@ public class ChessGame {
                 }
                 string.append(" h " + EMPTY + RESET_COLOR + "\n");
 
-                boolean isDark = false;
+                boolean isDark = true;
                 for (int row = 8; row >= 1; row--) {
                     string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK);
                     string.append(" ").append(row).append(" ");
                     isDark = !isDark;
                     for (int col = 1; col <= 8; col++) {
-                        isDark = squareToString(string, isDark, row, col, spaces);
+                        isDark = squareToString(string, isDark, row, col, spaces, position);
                     }
                     string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK);
                     string.append(" ").append(row).append("\u2003").append(RESET_COLOR).append("\n");
@@ -272,19 +272,26 @@ public class ChessGame {
         return string.toString();
     }
 
-    private boolean squareToString(StringBuilder string, boolean isDark, int row, int col, HashSet<ChessPosition> selected) {
+    private boolean squareToString(StringBuilder string,
+                                   boolean isDark,
+                                   int row,
+                                   int col,
+                                   HashSet<ChessPosition> selectedSpaces,
+                                   ChessPosition startPosition) {
         var location = new ChessPosition(row, col);
         String squareColor;
-        if (isDark) {
-            if (selected.contains(location)) {
+        if (location.equals(startPosition)) {
+            squareColor = SET_BG_COLOR_BLUE;
+        } else if (isDark) {
+            if (selectedSpaces.contains(location)) {
                 squareColor = SET_BG_COLOR_CYAN;
             } else {
                 squareColor = SET_BG_COLOR_DARK_GREEN;
             }
         } else {
-            if (selected.contains(location)){
+            if (selectedSpaces.contains(location)) {
                 squareColor = SET_BG_COLOR_BRIGHT_CYAN;
-            } else{
+            } else {
                 squareColor = SET_BG_COLOR_LIGHT_GREY;
             }
         }

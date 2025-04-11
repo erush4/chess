@@ -58,12 +58,21 @@ public class GameplayLoop extends Repl implements NotificationHandler {
     }
 
     private String highlightMoves(String[] params) {
-        if (params.length != 2) {
+        if (params.length != 1 ) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
-        int row = 1 +  params[1].charAt(0) - 'a';
-        int col = Integer.parseInt(params[0]);
-        return game.game().projectValidMoves(new ChessPosition(row, col), team);
+        if (params[0].length() > 2){
+            return SET_TEXT_COLOR_RED + "Please enter a valid square.";
+        }
+        int row = (params[0].charAt(0)) - '0';
+        int col = 1 +  params[0].charAt(1) - 'a';
+        try {
+            return game.game().projectValidMoves(new ChessPosition(row, col), team);
+        } catch (NullPointerException e) {
+            return SET_TEXT_COLOR_RED + "There is no piece on the selected square.";
+        } catch (IndexOutOfBoundsException e){
+            return SET_TEXT_COLOR_RED + "Please enter a valid square.";
+        }
     }
 
     @Override
@@ -92,7 +101,7 @@ public class GameplayLoop extends Repl implements NotificationHandler {
     }
 
     private String leave(String[] params) {
-        if (params.length != 0) {
+        if (params.length != 0 ) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
         try {
