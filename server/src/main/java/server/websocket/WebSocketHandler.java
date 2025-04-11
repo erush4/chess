@@ -189,7 +189,8 @@ public class WebSocketHandler {
         }
 
         var room = rooms.get(gameID);
-        String msg = SET_TEXT_COLOR_YELLOW + userName + RESET_COLOR + " has moved to " + SET_TEXT_COLOR_YELLOW + move.getEndPosition().toString() + RESET_COLOR;
+        String msg = SET_TEXT_COLOR_YELLOW + userName + RESET_COLOR + " has moved to " + SET_TEXT_COLOR_YELLOW
+                + move.getEndPosition().toString() + RESET_COLOR;
         var message = new NotificationMessage(msg);
         var loadMessage = new LoadGameMessage(game);
         var teamTurn = game.game().getTeamTurn();

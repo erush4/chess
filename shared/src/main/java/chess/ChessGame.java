@@ -215,10 +215,13 @@ public class ChessGame {
     }
 
     public String projectValidMoves(ChessPosition position, TeamColor team) {
-        var moves = validMoves(position);
+
         HashSet<ChessPosition> spaces = new HashSet<>();
-        for (ChessMove m : moves) {
-            spaces.add(m.getEndPosition());
+        if (position != null) {
+            var moves = validMoves(position);
+            for (ChessMove m : moves) {
+                spaces.add(m.getEndPosition());
+            }
         }
         StringBuilder string = new StringBuilder();
         string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK + EMPTY);

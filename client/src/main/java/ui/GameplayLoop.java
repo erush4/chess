@@ -42,7 +42,7 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         if (params.length != 0) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
-        return game.game().getBoard().toString(team);
+        return game.game().projectValidMoves(null, team);
     }
 
     private String makeMove(String[] params) { //TODO
@@ -54,7 +54,7 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         try {
             startLocation = parseLocation(params[0]);
             endLocation = parseLocation(params[1]);
-        }catch(Exception e){
+        } catch (Exception e) {
             return SET_TEXT_COLOR_RED + "Something is wrong with your input. Please try again.";
         }
         var piece = game.game().getBoard().getPiece(startLocation);
@@ -89,13 +89,13 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         } catch (ResponseException e) {
             return SET_TEXT_COLOR_RED + "Could not connect to server";
         } catch (IllegalStateException e) {
-        return SET_TEXT_COLOR_RED + "The connection timed out.";
-    }
+            return SET_TEXT_COLOR_RED + "The connection timed out.";
+        }
         return "";
     }
 
     private String resign(String[] params) {
-        if (params.length != 0) { //TODO
+        if (params.length != 0) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
         try {
@@ -176,9 +176,9 @@ public class GameplayLoop extends Repl implements NotificationHandler {
     }
 
     @Override
-    public void load_game(LoadGameMessage message) {
+    public void loadGame(LoadGameMessage message) {
         this.game = message.getGame();
-        System.out.println("\n" + game.game().getBoard().toString(team));
+        System.out.println("\n" + game.game().projectValidMoves(null, team));
         System.out.print(RESET_COLOR + ">>>" + SET_TEXT_COLOR_GREEN);
     }
 
