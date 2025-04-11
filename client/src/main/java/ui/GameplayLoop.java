@@ -11,6 +11,8 @@ import static ui.EscapeSequences.*;
 
 public class GameplayLoop extends Repl implements NotificationHandler {
     WebSocketFacade webSocketFacade;
+    int gameID;
+    String authToken;
 
     public GameplayLoop(String authToken, int gameID) {
         super("leave");
@@ -19,6 +21,8 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         } catch (ResponseException e) {
             System.out.print(SET_TEXT_COLOR_RED + "Could not connect to server");
         }
+        this.authToken = authToken;
+        this.gameID = gameID;
         start();
     }
 
@@ -64,6 +68,11 @@ public class GameplayLoop extends Repl implements NotificationHandler {
     }
 
     private String leave() {
+        try {
+            webSocketFacade.leave(gameID, authToken);
+        } catch (ResponseException e) {
+            return SET_TEXT_COLOR_RED + "Could not connect to server";
+        }
         return RESET_COLOR + "You have left the game.";
     }
 
