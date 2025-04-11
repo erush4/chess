@@ -85,10 +85,8 @@ public class LoggedInLoop extends Repl {
             var request = new JoinGameRequest(color, gameID);
 
             server.joinGame(request, authtoken);
-            ChessBoard board = new ChessBoard();
-            board.resetBoard();
-            return RESET_COLOR + "Successfully joined game #" + SET_TEXT_COLOR_YELLOW + clientGameID + RESET_COLOR + " as "
-                    + SET_TEXT_COLOR_YELLOW + color + RESET_COLOR + ".\n" + board.toString(color);
+            new GameplayLoop(authtoken, gameID,color);
+            return RESET_COLOR + "You have left the game.";
         } catch (ResponseException e) {
             return SET_TEXT_COLOR_RED + switch (e.getStatusCode()) {
                 case 400 ->

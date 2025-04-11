@@ -17,7 +17,7 @@ public class WebSocketFacade extends Endpoint {
 
     public WebSocketFacade(NotificationHandler handler) throws ResponseException {
         try {
-            URI socketURI = new URI("ws://localhost:8080");
+            URI socketURI = new URI("ws://localhost:8080/ws");
             this.notificationHandler = handler;
 
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();

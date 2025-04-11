@@ -1,5 +1,8 @@
 package ui;
 
+import chess.ChessGame;
+import chess.ChessPosition;
+import model.GameData;
 import model.ResponseException;
 import server.NotificationHandler;
 import server.WebSocketFacade;
@@ -13,33 +16,51 @@ public class GameplayLoop extends Repl implements NotificationHandler {
     WebSocketFacade webSocketFacade;
     int gameID;
     String authToken;
+    GameData game;
+    ChessGame.TeamColor team;
 
-    public GameplayLoop(String authToken, int gameID) {
+    public GameplayLoop(String authToken, int gameID, ChessGame.TeamColor teamColor) {
         super("leave");
         try {
             webSocketFacade = new WebSocketFacade(this);
         } catch (ResponseException e) {
-            System.out.print(SET_TEXT_COLOR_RED + "Could not connect to server");
+            System.out.print(SET_TEXT_COLOR_RED + "Could not connect to server" + e.getMessage());
+            return;
         }
         this.authToken = authToken;
         this.gameID = gameID;
+        this.team = teamColor;
         start();
     }
 
-    private String redraw() {
-        return "";
+    private String redraw(String[] params) {
+        if (params.length != 0) {
+            return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
+        }
+        return game.game().toString();
     }
 
     private String makeMove(String[] params) {
-        return "";
+        if (params.length != 4) {
+            return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
+        }
+        return null;
     }
 
-    private String resign() {
-        return "";
+    private String resign(String[] params) {
+        if (params.length != 0) {
+            return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
+        }
+        return null;
     }
 
     private String highlightMoves(String[] params) {
-        return "";
+        if (params.length != 2) {
+            return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
+        }
+        int row = 1 +  params[1].charAt(0) - 'a';
+        int col = Integer.parseInt(params[0]);
+        return game.game().projectValidMoves(new ChessPosition(row, col), team);
     }
 
     @Override
@@ -57,23 +78,26 @@ public class GameplayLoop extends Repl implements NotificationHandler {
     @Override
     String functions(String command, String[] params) throws ResponseException {
         return switch (command) {
-            case "leave" -> leave();
-            case "resign" -> resign();
+            case "leave" -> leave(params);
+            case "resign" -> resign(params);
             case "highlight" -> highlightMoves(params);
-            case "redraw" -> redraw();
+            case "redraw" -> redraw(params);
             case "move" -> makeMove(params);
             case "help" -> help();
             default -> SET_TEXT_COLOR_RED + "Invalid command: please use one of the following:\n" + help();
         };
     }
 
-    private String leave() {
+    private String leave(String[] params) {
+        if (params.length != 0) {
+            return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
+        }
         try {
             webSocketFacade.leave(gameID, authToken);
         } catch (ResponseException e) {
             return SET_TEXT_COLOR_RED + "Could not connect to server";
         }
-        return RESET_COLOR + "You have left the game.";
+        return "";
     }
 
     @Override
@@ -88,6 +112,6 @@ public class GameplayLoop extends Repl implements NotificationHandler {
 
     @Override
     public void load_game(LoadGameMessage message) {
-
+        game = message.getGame();
     }
 }
