@@ -23,7 +23,13 @@ public class WebSocketFacade extends Endpoint {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             this.session = container.connectToServer(this, socketURI);
 
-            this.session.addMessageHandler((MessageHandler.Whole<String>) message -> notificationHandler.notify(message));
+            //noinspection Convert2Lambda
+            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
+                public void onMessage(String message) {
+                    notificationHandler.notify(message);
+                }
+            });
         } catch (DeploymentException | IOException | URISyntaxException e) {
             throw new ResponseException(500, e.getMessage());
         }

@@ -21,15 +21,18 @@ public class GameplayLoop extends Repl implements NotificationHandler {
 
     public GameplayLoop(String authToken, int gameID, ChessGame.TeamColor teamColor) {
         super("leave");
+
         try {
             webSocketFacade = new WebSocketFacade(this);
+            this.authToken = authToken;
+            this.gameID = gameID;
+            this.team = teamColor;
+            webSocketFacade.connect(gameID, authToken);
         } catch (ResponseException e) {
             System.out.print(SET_TEXT_COLOR_RED + "Could not connect to server" + e.getMessage());
             return;
         }
-        this.authToken = authToken;
-        this.gameID = gameID;
-        this.team = teamColor;
+
         start();
     }
 
@@ -37,7 +40,7 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         if (params.length != 0) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
-        return game.game().toString();
+        return game.game().getBoard().toString(team);
     }
 
     private String makeMove(String[] params) {
@@ -112,6 +115,7 @@ public class GameplayLoop extends Repl implements NotificationHandler {
 
     @Override
     public void load_game(LoadGameMessage message) {
-        game = message.getGame();
+        this.game = message.getGame();
+        redraw(new String[]{});
     }
 }
