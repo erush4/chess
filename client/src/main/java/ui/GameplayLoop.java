@@ -1,6 +1,8 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
 import chess.ChessPosition;
 import model.GameData;
 import model.ResponseException;
@@ -44,10 +46,44 @@ public class GameplayLoop extends Repl implements NotificationHandler {
     }
 
     private String makeMove(String[] params) { //TODO
-        if (params.length != 4) {
+        if (params.length > 3 || params.length < 2) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
-        return null;
+        var startLocation = parseLocation(params[0]);
+        var endLocation = parseLocation(params[1]);
+        var piece = game.game().getBoard().getPiece(startLocation);
+        if (piece.getPieceType() != ChessPiece.PieceType.PAWN) {
+            if (params.length == 3) {
+                return SET_TEXT_COLOR_RED + "Invalid Promotion. Cannot promote non-pawn pieces.";
+            }
+        } else if (endLocation.getRow() == 1 || endLocation.getRow() == 8) {
+            if (params.length == 2) {
+                return SET_TEXT_COLOR_RED + "Must include promotion piece when moving to end of board.";
+            }
+        } else {
+            if (params.length == 3) {
+                return SET_TEXT_COLOR_RED + "Cannot promote before reaching the end of the board.";
+            }
+        }
+        ChessPiece.PieceType type = null;
+        if (params.length == 3) {
+            switch (params[2]) {
+                case "queen" -> type = ChessPiece.PieceType.QUEEN;
+                case "knight" -> type = ChessPiece.PieceType.KNIGHT;
+                case "bishop" -> type = ChessPiece.PieceType.BISHOP;
+                case "rook" -> type = ChessPiece.PieceType.ROOK;
+                case null, default -> {
+                    return SET_TEXT_COLOR_RED + "Invalid promotion piece type.";
+                }
+            }
+        }
+        ChessMove move = new ChessMove(startLocation, endLocation, type);
+        try {
+            webSocketFacade.makeMove(gameID, authToken, move);
+        } catch (ResponseException e) {
+            return SET_TEXT_COLOR_RED + "Could not connect to server";
+        }
+        return "";
     }
 
     private String resign(String[] params) {
@@ -64,10 +100,8 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         if (params[0].length() > 2) {
             return SET_TEXT_COLOR_RED + "Please enter a valid square.";
         }
-        int row = (params[0].charAt(0)) - '0';
-        int col = 1 + params[0].charAt(1) - 'a';
         try {
-            return game.game().projectValidMoves(new ChessPosition(row, col), team);
+            return game.game().projectValidMoves(parseLocation(params[0]), team);
         } catch (NullPointerException e) {
             return SET_TEXT_COLOR_RED + "There is no piece on the selected square.";
         } catch (IndexOutOfBoundsException e) {
@@ -88,7 +122,7 @@ public class GameplayLoop extends Repl implements NotificationHandler {
     }
 
     @Override
-    String functions(String command, String[] params) throws ResponseException {
+    String functions(String command, String[] params) {
         return switch (command) {
             case "leave" -> leave(params);
             case "resign" -> resign(params);
@@ -108,6 +142,8 @@ public class GameplayLoop extends Repl implements NotificationHandler {
             webSocketFacade.leave(gameID, authToken);
         } catch (ResponseException e) {
             return SET_TEXT_COLOR_RED + "Could not connect to server";
+        } catch (IllegalStateException e) {
+            return SET_TEXT_COLOR_RED + "The connection timed out.";
         }
         return "";
     }
@@ -127,8 +163,13 @@ public class GameplayLoop extends Repl implements NotificationHandler {
     @Override
     public void load_game(LoadGameMessage message) {
         this.game = message.getGame();
-        var p = new String[0];
         System.out.println("\n" + game.game().getBoard().toString(team));
         System.out.print(RESET_COLOR + ">>>" + SET_TEXT_COLOR_GREEN);
+    }
+
+    private ChessPosition parseLocation(String string) {
+        int row = (string.charAt(1)) - '0';
+        int col = 1 + string.charAt(0) - 'a';
+        return new ChessPosition(row, col);
     }
 }
