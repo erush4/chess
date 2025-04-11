@@ -18,6 +18,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
 
+import static ui.EscapeSequences.RESET_COLOR;
+import static ui.EscapeSequences.SET_TEXT_COLOR_YELLOW;
+
 
 @WebSocket
 public class WebSocketHandler {
@@ -183,16 +186,65 @@ public class WebSocketHandler {
             error("Error while updating game", session);
             return;
         }
+
         var room = rooms.get(gameID);
-        String msg = userName + " has moved to " + move.getEndPosition();
+        String msg = SET_TEXT_COLOR_YELLOW + userName + RESET_COLOR + " has moved to " +
+                SET_TEXT_COLOR_YELLOW + move.getEndPosition().toString() + RESET_COLOR;
         var message = new NotificationMessage(msg);
         var loadMessage = new LoadGameMessage(game);
+        var teamTurn = game.game().getTeamTurn();
         try {
             room.broadcast(null, loadMessage);
             room.broadcast(userName, message);
         } catch (IOException e) {
             throw new ResponseException(500, e.getMessage());
         }
+        String nextUser = switch (teamTurn) {
+            case WHITE -> game.whiteUsername();
+            case BLACK -> game.blackUsername();
+        };
+        if (game.game().isInStalemate(teamTurn)) {
+            game.game().setGameWon(true);
+            String staleMsg = SET_TEXT_COLOR_YELLOW + nextUser + RESET_COLOR + "is in stalemate!";
+            NotificationMessage staleMessage = new NotificationMessage(staleMsg);
+            String personalStaleMsg = SET_TEXT_COLOR_YELLOW + "You are in stalemate!" + RESET_COLOR;
+            NotificationMessage personalStaleMessage = new NotificationMessage(personalStaleMsg);
+            try {
+                room.broadcast(nextUser, staleMessage);
+                room.send(nextUser, personalStaleMessage);
+                service.updateGame(authToken, game);
+
+            } catch (IOException e) {
+                throw new ResponseException(500, e.getMessage());
+            } catch (ResponseException e) {
+                error("Error while updating game", session);
+            }
+
+        } else if (game.game().isInCheck(teamTurn)) {
+            String checkMsg;
+            NotificationMessage checkMessage;
+            String personalCheckMsg;
+            NotificationMessage personalCheckMessage;
+            if (game.game().isInCheckmate(teamTurn)) {
+                checkMsg = SET_TEXT_COLOR_YELLOW + nextUser + RESET_COLOR + " has been checkmated!";
+                personalCheckMsg = SET_TEXT_COLOR_YELLOW + "You have been checkmated!" + RESET_COLOR;
+            } else {
+                checkMsg = SET_TEXT_COLOR_YELLOW + nextUser + RESET_COLOR + " is in check!";
+                personalCheckMsg = SET_TEXT_COLOR_YELLOW + "You are in check!" + RESET_COLOR;
+            }
+            checkMessage = new NotificationMessage(checkMsg);
+            personalCheckMessage = new NotificationMessage(personalCheckMsg);
+            try {
+                room.broadcast(nextUser, checkMessage);
+                room.send(nextUser, personalCheckMessage);
+                service.updateGame(authToken, game);
+            } catch (IOException e) {
+                throw new ResponseException(500, e.getMessage());
+            } catch (ResponseException e) {
+                error("Error while updating game", session);
+            }
+        }
+
     }
 
     private String getUserName(String authToken, Session session) throws ResponseException {

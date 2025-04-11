@@ -33,7 +33,7 @@ public class ChessPosition {
 
     @Override
     public String toString(){
-        return Integer.toString(row) + ('a' + col);
+        return ('a' + col) + Integer.toString(row);
     }
     /**
      * @return which row this position is in

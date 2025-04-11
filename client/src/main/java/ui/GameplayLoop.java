@@ -49,8 +49,14 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         if (params.length > 3 || params.length < 2) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
-        var startLocation = parseLocation(params[0]);
-        var endLocation = parseLocation(params[1]);
+        ChessPosition startLocation;
+        ChessPosition endLocation;
+        try {
+            startLocation = parseLocation(params[0]);
+            endLocation = parseLocation(params[1]);
+        }catch(Exception e){
+            return SET_TEXT_COLOR_RED + "Something is wrong with your input. Please try again.";
+        }
         var piece = game.game().getBoard().getPiece(startLocation);
         if (piece.getPieceType() != ChessPiece.PieceType.PAWN) {
             if (params.length == 3) {
