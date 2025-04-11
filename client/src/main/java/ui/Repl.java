@@ -7,9 +7,9 @@ import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-abstract class ReplTemplate {
+abstract class Repl {
     protected String exitString;
-    public ReplTemplate(String exitString){
+    public Repl(String exitString){
         this.exitString = exitString;
     }
     private String eval(String input) {
@@ -38,16 +38,16 @@ abstract class ReplTemplate {
 
             try {
                 var result = eval(input);
-                System.out.print(result);
+                System.out.println(result);
             } catch (Throwable e) {
                 var msg = e.getMessage();
-                System.out.print(SET_TEXT_COLOR_RED + msg);
+                System.out.println(SET_TEXT_COLOR_RED + msg);
             }
         }
     }
 
     private void printPrompt() {
-        System.out.print("\n" + RESET_COLOR + ">>>" + SET_TEXT_COLOR_GREEN);
+        System.out.print(RESET_COLOR + ">>>" + SET_TEXT_COLOR_GREEN);
     }
 
     abstract String help();

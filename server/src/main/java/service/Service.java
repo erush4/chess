@@ -18,7 +18,7 @@ public class Service {
         return authToken;
     }
 
-    private AuthData verifyAuthData(String authToken) throws ResponseException {
+    public AuthData verifyAuthData(String authToken) throws ResponseException {
         try {
             AuthData authData = dataAccess.getAuth(authToken);
             if (authData == null) {
@@ -145,6 +145,24 @@ public class Service {
 
             };
             dataAccess.updateGame(newGameData);
+        } catch (DataAccessException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
+    }
+
+    public GameData getGame(String authToken, int gameID) throws ResponseException {
+        verifyAuthData(authToken);
+        try {
+            return dataAccess.getGame(gameID);
+        } catch (DataAccessException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
+    }
+
+    public void updateGame (String authToken, GameData game) throws ResponseException {
+        verifyAuthData(authToken);
+        try{
+            dataAccess.updateGame(game);
         } catch (DataAccessException e) {
             throw new ResponseException(500, e.getMessage());
         }

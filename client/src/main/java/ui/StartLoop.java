@@ -6,9 +6,9 @@ import server.ServerFacade;
 import static ui.EscapeSequences.*;
 
 
-public class StartRepl extends ReplTemplate{
+public class StartLoop extends Repl {
     private static ServerFacade server = new ServerFacade("8080");
-    public StartRepl(String port) {
+    public StartLoop(String port) {
         super("quit");
         server = new ServerFacade(port);
         start();
@@ -33,7 +33,7 @@ public class StartRepl extends ReplTemplate{
         String username = response.username();
         System.out.println(RESET_COLOR + "Welcome, " + username);
 
-        new LoggedInRepl(authtoken, username, server);
+        new LoggedInLoop(authtoken, username, server);
 
         return RESET_COLOR + "Goodbye, " + username;
     }
@@ -60,7 +60,7 @@ public class StartRepl extends ReplTemplate{
         String username = response.username();
 
         System.out.println(RESET_COLOR + "Welcome, " + username + "! Your account has been created successfully.");
-        new LoggedInRepl(authtoken, username, server);
+        new LoggedInLoop(authtoken, username, server);
         return "Goodbye, " + username;
     }
 
