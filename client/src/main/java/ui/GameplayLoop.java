@@ -1,13 +1,24 @@
 package ui;
 
 import model.ResponseException;
+import server.NotificationHandler;
+import server.WebSocketFacade;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
 
 import static ui.EscapeSequences.*;
-import static ui.EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY;
 
-public class GameplayLoop extends Repl {
-    public GameplayLoop() {
+public class GameplayLoop extends Repl implements NotificationHandler {
+    WebSocketFacade webSocketFacade;
+
+    public GameplayLoop(String authToken, int gameID) {
         super("leave");
+        try {
+            webSocketFacade = new WebSocketFacade(this);
+        } catch (ResponseException e) {
+            System.out.print(SET_TEXT_COLOR_RED + "Could not connect to server");
+        }
         start();
     }
 
@@ -16,7 +27,7 @@ public class GameplayLoop extends Repl {
     }
 
     private String makeMove(String[] params) {
-        return  "";
+        return "";
     }
 
     private String resign() {
@@ -42,7 +53,7 @@ public class GameplayLoop extends Repl {
     @Override
     String functions(String command, String[] params) throws ResponseException {
         return switch (command) {
-            case "leave" -> RESET_COLOR + "You have left the game.";
+            case "leave" -> leave();
             case "resign" -> resign();
             case "highlight" -> highlightMoves(params);
             case "redraw" -> redraw();
@@ -50,5 +61,24 @@ public class GameplayLoop extends Repl {
             case "help" -> help();
             default -> SET_TEXT_COLOR_RED + "Invalid command: please use one of the following:\n" + help();
         };
+    }
+
+    private String leave() {
+        return RESET_COLOR + "You have left the game.";
+    }
+
+    @Override
+    public void notification(NotificationMessage message) {
+
+    }
+
+    @Override
+    public void error(ErrorMessage message) {
+
+    }
+
+    @Override
+    public void load_game(LoadGameMessage message) {
+
     }
 }
