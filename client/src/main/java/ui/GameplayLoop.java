@@ -88,7 +88,9 @@ public class GameplayLoop extends Repl implements NotificationHandler {
             webSocketFacade.makeMove(gameID, authToken, move);
         } catch (ResponseException e) {
             return SET_TEXT_COLOR_RED + "Could not connect to server";
-        }
+        } catch (IllegalStateException e) {
+        return SET_TEXT_COLOR_RED + "The connection timed out.";
+    }
         return "";
     }
 
@@ -96,7 +98,14 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         if (params.length != 0) { //TODO
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
-        return null;
+        try {
+            webSocketFacade.resign(gameID, authToken);
+        } catch (ResponseException e) {
+            return SET_TEXT_COLOR_RED + "Could not connect to server";
+        } catch (IllegalStateException e) {
+            return SET_TEXT_COLOR_RED + "The connection timed out.";
+        }
+        return "";
     }
 
     private String highlightMoves(String[] params) {
