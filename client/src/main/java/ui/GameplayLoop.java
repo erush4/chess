@@ -45,7 +45,7 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         return game.game().projectValidMoves(null, team);
     }
 
-    private String makeMove(String[] params) { //TODO
+    private String makeMove(String[] params) {
         if (params.length > 3 || params.length < 2) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
