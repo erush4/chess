@@ -109,7 +109,7 @@ public class LoggedInLoop extends Repl {
 
     }
 
-    String observe(String[] params) {
+    String observe(String[] params) { //TODO
         if (params.length != 1) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }

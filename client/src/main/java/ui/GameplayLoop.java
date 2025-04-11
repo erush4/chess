@@ -43,7 +43,7 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         return game.game().getBoard().toString(team);
     }
 
-    private String makeMove(String[] params) {
+    private String makeMove(String[] params) { //TODO
         if (params.length != 4) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
@@ -51,35 +51,35 @@ public class GameplayLoop extends Repl implements NotificationHandler {
     }
 
     private String resign(String[] params) {
-        if (params.length != 0) {
+        if (params.length != 0) { //TODO
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
         return null;
     }
 
     private String highlightMoves(String[] params) {
-        if (params.length != 1 ) {
+        if (params.length != 1) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
-        if (params[0].length() > 2){
+        if (params[0].length() > 2) {
             return SET_TEXT_COLOR_RED + "Please enter a valid square.";
         }
         int row = (params[0].charAt(0)) - '0';
-        int col = 1 +  params[0].charAt(1) - 'a';
+        int col = 1 + params[0].charAt(1) - 'a';
         try {
             return game.game().projectValidMoves(new ChessPosition(row, col), team);
         } catch (NullPointerException e) {
             return SET_TEXT_COLOR_RED + "There is no piece on the selected square.";
-        } catch (IndexOutOfBoundsException e){
+        } catch (IndexOutOfBoundsException e) {
             return SET_TEXT_COLOR_RED + "Please enter a valid square.";
         }
     }
 
     @Override
     String help() {
-        return SET_TEXT_COLOR_BLUE + "move <START ROW> <START COLUMN> <END ROW> <END COLUMN>"
-                + SET_TEXT_COLOR_LIGHT_GREY + " - makes the selected chess move, if valid\n"
-                + SET_TEXT_COLOR_BLUE + "highlight <ROW> <COLUMN>" + SET_TEXT_COLOR_LIGHT_GREY
+        return SET_TEXT_COLOR_BLUE + "move <START POSITION> <END POSITION> <PROMOTION PIECE>"
+                + SET_TEXT_COLOR_LIGHT_GREY + " - makes the selected chess move, if valid. \n"
+                + SET_TEXT_COLOR_BLUE + "highlight <POSITION>" + SET_TEXT_COLOR_LIGHT_GREY
                 + " - highlights valid moves for the selected piece\n"
                 + SET_TEXT_COLOR_BLUE + "redraw" + SET_TEXT_COLOR_LIGHT_GREY + " - redraws the board\n"
                 + SET_TEXT_COLOR_BLUE + "resign" + SET_TEXT_COLOR_LIGHT_GREY + " - resign from the game\n"
@@ -101,7 +101,7 @@ public class GameplayLoop extends Repl implements NotificationHandler {
     }
 
     private String leave(String[] params) {
-        if (params.length != 0 ) {
+        if (params.length != 0) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
         try {
@@ -114,17 +114,21 @@ public class GameplayLoop extends Repl implements NotificationHandler {
 
     @Override
     public void notification(NotificationMessage message) {
-
+        System.out.println("\n" + RESET_TEXT_COLOR + message.getMessage());
+        System.out.print(RESET_COLOR + ">>>" + SET_TEXT_COLOR_GREEN);
     }
 
     @Override
     public void error(ErrorMessage message) {
-
+        System.out.println("\n" + SET_TEXT_COLOR_RED + message.getErrorMessage());
+        System.out.print(RESET_COLOR + ">>>" + SET_TEXT_COLOR_GREEN);
     }
 
     @Override
     public void load_game(LoadGameMessage message) {
         this.game = message.getGame();
-        redraw(new String[]{});
+        var p = new String[0];
+        System.out.println("\n" + game.game().getBoard().toString(team));
+        System.out.print(RESET_COLOR + ">>>" + SET_TEXT_COLOR_GREEN);
     }
 }
