@@ -1,8 +1,11 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
+
+import static ui.EscapeSequences.*;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -11,9 +14,18 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessGame {
-    TeamColor teamTurn;
-    ChessBoard board;
-    ChessMove lastMove;
+    private TeamColor teamTurn;
+    private ChessBoard board;
+    private ChessMove lastMove;
+    private boolean gameWon;
+
+    public ChessGame() {
+        teamTurn = TeamColor.WHITE;
+        board = new ChessBoard();
+        board.resetBoard();
+        lastMove = null;
+        gameWon = false;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -27,13 +39,6 @@ public class ChessGame {
     @Override
     public int hashCode() {
         return Objects.hash(teamTurn, board, lastMove);
-    }
-
-    public ChessGame() {
-        teamTurn = TeamColor.WHITE;
-        board = new ChessBoard();
-        board.resetBoard();
-        lastMove = null;
     }
 
     /**
@@ -50,14 +55,6 @@ public class ChessGame {
      */
     public void setTeamTurn(TeamColor team) {
         teamTurn = team;
-    }
-
-    /**
-     * Enum identifying the 2 possible teams in a chess game
-     */
-    public enum TeamColor {
-        WHITE,
-        BLACK
     }
 
     /**
@@ -96,6 +93,9 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        if (gameWon) {
+            throw new InvalidMoveException();
+        }
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece piece = board.getPiece(startPosition);
         if (piece == null || piece.getTeamColor() != teamTurn) { //only move on your turn
@@ -189,6 +189,15 @@ public class ChessGame {
     }
 
     /**
+     * Gets the current chessboard
+     *
+     * @return the chessboard
+     */
+    public ChessBoard getBoard() {
+        return board;
+    }
+
+    /**
      * Sets this game's chessboard with a given board
      *
      * @param board the new board to use
@@ -197,12 +206,111 @@ public class ChessGame {
         this.board = board;
     }
 
+    public boolean isGameWon() {
+        return gameWon;
+    }
+
+    public void setGameWon(boolean gameWon) {
+        this.gameWon = gameWon;
+    }
+
+    public String projectValidMoves(ChessPosition position, TeamColor team) {
+        var moves = validMoves(position);
+        HashSet<ChessPosition> spaces = new HashSet<>();
+        for (ChessMove m : moves) {
+            spaces.add(m.getEndPosition());
+        }
+        StringBuilder string = new StringBuilder();
+        string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK + EMPTY);
+        switch (team) {
+            case BLACK -> {
+                for (int i = 0; i < 7; i++) {
+                    string.append(" ").append((char) ('h' - i)).append("\u2003");
+                }
+                string.append(" a " + EMPTY + RESET_COLOR + "\n");
+                boolean isDark = true;
+                for (int row = 1; row <= 8; row++) {
+                    string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK);
+                    string.append(" ").append(row).append(" ");
+                    isDark = !isDark;
+                    for (int col = 8; col >= 1; col--) {
+                        isDark = squareToString(string, isDark, row, col, spaces, position);
+                    }
+                    string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK);
+                    string.append(" ").append(row).append("\u2003").append(RESET_COLOR).append("\n");
+                }
+                string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK + EMPTY);
+                for (int i = 0; i < 7; i++) {
+                    string.append(" ").append((char) ('h' - i)).append("\u2003");
+                }
+                string.append(" a " + EMPTY + RESET_COLOR + "\n");
+            }
+            case WHITE -> {
+                for (int col = 0; col < 7; col++) {
+                    string.append(" ").append((char) ('a' + col)).append("\u2003");
+                }
+                string.append(" h " + EMPTY + RESET_COLOR + "\n");
+
+                boolean isDark = true;
+                for (int row = 8; row >= 1; row--) {
+                    string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK);
+                    string.append(" ").append(row).append(" ");
+                    isDark = !isDark;
+                    for (int col = 1; col <= 8; col++) {
+                        isDark = squareToString(string, isDark, row, col, spaces, position);
+                    }
+                    string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK);
+                    string.append(" ").append(row).append("\u2003").append(RESET_COLOR).append("\n");
+                }
+                string.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK + EMPTY);
+                for (int col = 0; col < 7; col++) {
+                    string.append(" ").append((char) ('a' + col)).append("\u2003");
+                }
+                string.append(" h " + EMPTY + RESET_COLOR + "\n");
+            }
+        }
+        return string.toString();
+    }
+
+    private boolean squareToString(StringBuilder string,
+                                   boolean isDark,
+                                   int row,
+                                   int col,
+                                   HashSet<ChessPosition> selectedSpaces,
+                                   ChessPosition startPosition) {
+        var location = new ChessPosition(row, col);
+        String squareColor;
+        if (location.equals(startPosition)) {
+            squareColor = SET_BG_COLOR_BLUE;
+        } else if (isDark) {
+            if (selectedSpaces.contains(location)) {
+                squareColor = SET_BG_COLOR_CYAN;
+            } else {
+                squareColor = SET_BG_COLOR_DARK_GREEN;
+            }
+        } else {
+            if (selectedSpaces.contains(location)) {
+                squareColor = SET_BG_COLOR_BRIGHT_CYAN;
+            } else {
+                squareColor = SET_BG_COLOR_LIGHT_GREY;
+            }
+        }
+        string.append(squareColor);
+
+        var piece = board.getPiece(location);
+        if (piece == null) {
+            string.append(EMPTY);
+        } else {
+            string.append(piece);
+        }
+        return !isDark;
+    }
+
     /**
-     * Gets the current chessboard
-     *
-     * @return the chessboard
+     * Enum identifying the 2 possible teams in a chess game
      */
-    public ChessBoard getBoard() {
-        return board;
+    public enum TeamColor {
+        WHITE,
+        BLACK
     }
 }
