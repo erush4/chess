@@ -73,7 +73,8 @@ public class WebSocketHandler {
         } else {
             joinType = "an observer";
         }
-        String msg = userName + " has joined as " + joinType;
+        String msg = SET_TEXT_COLOR_YELLOW + userName + RESET_COLOR + " has joined as " + SET_TEXT_COLOR_YELLOW + joinType
+                + RESET_COLOR + ".";
         var message = new NotificationMessage(msg);
         var loadMessage = new LoadGameMessage(game);
         try {
@@ -105,7 +106,7 @@ public class WebSocketHandler {
             service.updateGame(authToken, game);
             var room = rooms.get(gameID);
             room.remove(userName);
-            String msg = userName + " has left the game";
+            String msg = SET_TEXT_COLOR_YELLOW + userName + RESET_COLOR + " has left the game.";
             var message = new NotificationMessage(msg);
             room.broadcast(userName, message);
         } catch (IOException e) {
@@ -141,10 +142,10 @@ public class WebSocketHandler {
             error("Error while updating game", session);
             return;
         }
-        String msg = userName + " has resigned";
+        String msg = SET_TEXT_COLOR_YELLOW + userName + RESET_COLOR + " has resigned.";
         var message = new NotificationMessage(msg);
         try {
-            notification(msg, session);
+            notification(SET_TEXT_COLOR_YELLOW + "You have resigned." + RESET_COLOR, session);
             room.broadcast(userName, message);
         } catch (IOException e) {
             throw new ResponseException(500, e.getMessage());
@@ -188,8 +189,7 @@ public class WebSocketHandler {
         }
 
         var room = rooms.get(gameID);
-        String msg = SET_TEXT_COLOR_YELLOW + userName + RESET_COLOR + " has moved to " +
-                SET_TEXT_COLOR_YELLOW + move.getEndPosition().toString() + RESET_COLOR;
+        String msg = SET_TEXT_COLOR_YELLOW + userName + RESET_COLOR + " has moved to " + SET_TEXT_COLOR_YELLOW + move.getEndPosition().toString() + RESET_COLOR;
         var message = new NotificationMessage(msg);
         var loadMessage = new LoadGameMessage(game);
         var teamTurn = game.game().getTeamTurn();

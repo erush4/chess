@@ -1,6 +1,5 @@
 package ui;
 
-import chess.ChessBoard;
 import chess.ChessGame;
 import model.*;
 import server.ServerFacade;
@@ -69,7 +68,7 @@ public class LoggedInLoop extends Repl {
         gameIDs.put(0, response.gameID());
         return RESET_COLOR + "Your game " + SET_TEXT_COLOR_YELLOW + gameName + RESET_COLOR +
                 " has been successfully created!\nYou can join it now with temporary ID #" +
-                SET_TEXT_COLOR_YELLOW + "0" +RESET_COLOR + ".";
+                SET_TEXT_COLOR_YELLOW + "0" + RESET_COLOR + ".";
     }
 
 
@@ -85,7 +84,7 @@ public class LoggedInLoop extends Repl {
             var request = new JoinGameRequest(color, gameID);
 
             server.joinGame(request, authtoken);
-            new GameplayLoop(authtoken, gameID,color);
+            new GameplayLoop(authtoken, gameID, color);
             return RESET_COLOR + "You have left the game.";
         } catch (ResponseException e) {
             return SET_TEXT_COLOR_RED + switch (e.getStatusCode()) {
@@ -116,10 +115,8 @@ public class LoggedInLoop extends Repl {
         try {
             int clientGameID = Integer.parseInt(params[0]);
             int gameID = gameIDs.get(clientGameID);
-            ChessBoard board = new ChessBoard();
-            board.resetBoard();
-            return RESET_COLOR + "Now observing game #" + SET_TEXT_COLOR_YELLOW + clientGameID + RESET_COLOR
-                    + RESET_COLOR + ".\n" + board.toString(ChessGame.TeamColor.WHITE);
+            new GameplayLoop(authtoken, gameID, ChessGame.TeamColor.WHITE);
+            return RESET_COLOR + "You have left the game.";
         } catch (NumberFormatException e) {
             return SET_TEXT_COLOR_RED + "Your game ID is not a number. Please try again.";
         } catch (NullPointerException e) {
@@ -149,13 +146,14 @@ public class LoggedInLoop extends Repl {
             int clientGameID = games.indexOf(game) + 1;
             gameIDs.put(clientGameID, game.gameID());
             string.append("Game #" + SET_TEXT_COLOR_YELLOW).append(clientGameID).append(RESET_COLOR + "\n");
-            string.append("\tName: " + SET_TEXT_COLOR_YELLOW).append(game.gameName()).append(RESET_COLOR +"\n");
-            string.append("\tWhite Player: "+SET_TEXT_COLOR_YELLOW).append(nameCheck(game.whiteUsername())).append(RESET_COLOR+ "\n");
+            string.append("\tName: " + SET_TEXT_COLOR_YELLOW).append(game.gameName()).append(RESET_COLOR + "\n");
+            string.append("\tWhite Player: " + SET_TEXT_COLOR_YELLOW).append(nameCheck(game.whiteUsername())).append(RESET_COLOR + "\n");
             string.append("\tBlack Player: " + SET_TEXT_COLOR_YELLOW).append(nameCheck(game.blackUsername())).append(RESET_COLOR + "\n\n");
         }
         return string.toString();
     }
-    private String nameCheck (String name){
+
+    private String nameCheck(String name) {
         return Objects.requireNonNullElse(name, "");
     }
 }
