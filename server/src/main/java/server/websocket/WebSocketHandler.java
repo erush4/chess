@@ -85,8 +85,21 @@ public class WebSocketHandler {
         try {
             var authToken = command.getAuthToken();
             int gameID = command.getGameID();
-
+            GameData game;
             String userName = getUserName(authToken, session);
+            try {
+                game = service.getGame(authToken, gameID);
+            } catch (ResponseException e) {
+                error("Error while getting game data", session);
+                return;
+            }
+            if (Objects.equals(game.whiteUsername(), userName)) {
+                game = new GameData(game.gameID(), null, game.blackUsername(), game.gameName(), game.game());
+            }
+            if (Objects.equals(game.blackUsername(), userName)) {
+                game = new GameData(game.gameID(), game.whiteUsername(), null, game.gameName(), game.game());
+            }
+            service.updateGame(authToken, game);
             var room = rooms.get(gameID);
             room.remove(userName);
             String msg = userName + " has left the game";
@@ -110,10 +123,12 @@ public class WebSocketHandler {
         }
         if (game.game().isGameWon()) {
             error("Error: cannot resign when the game is won", session);
+            return;
         }
         String userName = getUserName(authToken, session);
-        if (!Objects.equals(userName, game.blackUsername()) && !Objects.equals(userName, game.whiteUsername())){
+        if (!Objects.equals(userName, game.blackUsername()) && !Objects.equals(userName, game.whiteUsername())) {
             error("Error: cannot resign as observer", session);
+            return;
         }
         var room = rooms.get(gameID);
         game.game().setGameWon(true);
@@ -121,6 +136,7 @@ public class WebSocketHandler {
             service.updateGame(authToken, game);
         } catch (ResponseException e) {
             error("Error while updating game", session);
+            return;
         }
         String msg = userName + " has resigned";
         var message = new NotificationMessage(msg);
