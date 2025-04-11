@@ -108,10 +108,13 @@ public class WebSocketHandler {
             error("Error while getting game data", session);
             return;
         }
-        if (game.game().isGameWon()){
+        if (game.game().isGameWon()) {
             error("Error: cannot resign when the game is won", session);
         }
         String userName = getUserName(authToken, session);
+        if (!Objects.equals(userName, game.blackUsername()) && !Objects.equals(userName, game.whiteUsername())){
+            error("Error: cannot resign as observer", session);
+        }
         var room = rooms.get(gameID);
         game.game().setGameWon(true);
         try {
@@ -151,8 +154,7 @@ public class WebSocketHandler {
 
             if (Objects.equals(userName, expectedName)) {
                 game.game().makeMove(move);
-            }
-            else{
+            } else {
                 throw new InvalidMoveException();
             }
         } catch (InvalidMoveException e) {
