@@ -98,6 +98,7 @@ public class WebSocketHandler {
     }
 
     private void resign(UserGameCommand command, Session session) throws ResponseException {
+
         var authToken = command.getAuthToken();
         int gameID = command.getGameID();
         GameData game;
@@ -106,6 +107,9 @@ public class WebSocketHandler {
         } catch (ResponseException e) {
             error("Error while getting game data", session);
             return;
+        }
+        if (game.game().isGameWon()){
+            error("Error: cannot resign when the game is won", session);
         }
         String userName = getUserName(authToken, session);
         var room = rooms.get(gameID);
@@ -118,6 +122,7 @@ public class WebSocketHandler {
         String msg = userName + " has resigned";
         var message = new NotificationMessage(msg);
         try {
+            notification(msg, session);
             room.broadcast(userName, message);
         } catch (IOException e) {
             throw new ResponseException(500, e.getMessage());

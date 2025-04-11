@@ -11,10 +11,10 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessGame {
-    TeamColor teamTurn;
-    ChessBoard board;
-    ChessMove lastMove;
-    boolean gameWon;
+    private TeamColor teamTurn;
+    private ChessBoard board;
+    private ChessMove lastMove;
+    private boolean gameWon;
 
     @Override
     public boolean equals(Object o) {
@@ -213,5 +213,9 @@ public class ChessGame {
 
     public void setGameWon(boolean gameWon) {
         this.gameWon = gameWon;
+    }
+
+    public boolean isGameWon() {
+        return gameWon;
     }
 }
