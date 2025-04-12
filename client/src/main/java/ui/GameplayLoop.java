@@ -12,6 +12,8 @@ import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 
+import java.util.Scanner;
+
 import static ui.EscapeSequences.*;
 
 public class GameplayLoop extends Repl implements NotificationHandler {
@@ -58,6 +60,9 @@ public class GameplayLoop extends Repl implements NotificationHandler {
             return SET_TEXT_COLOR_RED + "Something is wrong with your input. Please try again.";
         }
         var piece = game.game().getBoard().getPiece(startLocation);
+        if (piece == null) {
+            return SET_TEXT_COLOR_RED + "No piece at selected location";
+        }
         if (piece.getPieceType() != ChessPiece.PieceType.PAWN) {
             if (params.length == 3) {
                 return SET_TEXT_COLOR_RED + "Invalid Promotion. Cannot promote non-pawn pieces.";
@@ -98,12 +103,18 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         if (params.length != 0) {
             return SET_TEXT_COLOR_RED + "Incorrect number of parameters. Please try again.";
         }
-        try {
-            webSocketFacade.resign(gameID, authToken);
-        } catch (ResponseException e) {
-            return SET_TEXT_COLOR_RED + "Could not connect to server";
-        } catch (IllegalStateException e) {
-            return SET_TEXT_COLOR_RED + "The connection timed out.";
+
+        System.out.println("Are you sure you want to resign");
+        Scanner scanner = new Scanner(System.in);
+        String input = scanner.nextLine();
+        if (input.equals("yes")) {
+            try {
+                webSocketFacade.resign(gameID, authToken);
+            } catch (ResponseException e) {
+                return SET_TEXT_COLOR_RED + "Could not connect to server";
+            } catch (IllegalStateException e) {
+                return SET_TEXT_COLOR_RED + "The connection timed out.";
+            }
         }
         return "";
     }
@@ -121,6 +132,8 @@ public class GameplayLoop extends Repl implements NotificationHandler {
             return SET_TEXT_COLOR_RED + "There is no piece on the selected square.";
         } catch (IndexOutOfBoundsException e) {
             return SET_TEXT_COLOR_RED + "Please enter a valid square.";
+        } catch (Exception e ){
+            return SET_TEXT_COLOR_RED + "Something is wrong with your input. Please try again.";
         }
     }
 
@@ -182,9 +195,12 @@ public class GameplayLoop extends Repl implements NotificationHandler {
         System.out.print(RESET_COLOR + ">>>" + SET_TEXT_COLOR_GREEN);
     }
 
-    private ChessPosition parseLocation(String string) {
+    private ChessPosition parseLocation(String string) throws Exception {
         int row = (string.charAt(1)) - '0';
         int col = 1 + string.charAt(0) - 'a';
+        if (row < 1 || row > 8 || col < 1 || col > 8){
+            throw new Exception();
+        }
         return new ChessPosition(row, col);
     }
 }
