@@ -3,6 +3,8 @@ package chess;
 import java.util.Arrays;
 import java.util.Objects;
 
+import static ui.EscapeSequences.*;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -50,6 +52,54 @@ public class ChessBoard {
     public ChessPiece getPiece(ChessPosition position) {
         return board[position.getRow() - 1][position.getColumn() - 1];
     }
+
+    @Override
+    public String toString() {
+        StringBuilder printStringBuild = new StringBuilder();
+        printStringBuild.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK + EMPTY);
+        for (int col = 0; col < 7; col++) {
+            printStringBuild.append(" ").append((char) ('a' + col)).append("\u2003");
+        }
+        printStringBuild.append(" h " + EMPTY + RESET_COLOR + "\n");
+
+        boolean isDark = true;
+        for (int row = 8; row >= 1; row--) {
+            printStringBuild.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK);
+            printStringBuild.append(" ").append(row).append(" ");
+            isDark = !isDark;
+            for (int col = 1; col <= 8; col++) {
+                squareToString(printStringBuild, isDark, row, col);
+                isDark = !isDark;
+            }
+            printStringBuild.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK);
+            printStringBuild.append(" ").append(row).append("\u2003").append(RESET_COLOR).append("\n");
+        }
+        printStringBuild.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK + EMPTY);
+        for (int col = 0; col < 7; col++) {
+            printStringBuild.append(" ").append((char) ('a' + col)).append("\u2003");
+        }
+        printStringBuild.append(" h " + EMPTY + RESET_COLOR + "\n");
+        return printStringBuild.toString();
+    }
+
+    private void squareToString(StringBuilder string, boolean isDark, int row, int col) {
+        var location = new ChessPosition(row, col);
+        String squareColor;
+        if (isDark) {
+            squareColor = SET_BG_COLOR_DARK_GREEN;
+        } else {
+            squareColor = SET_BG_COLOR_LIGHT_GREY;
+        }
+        string.append(squareColor);
+
+        var piece = getPiece(location);
+        if (piece == null) {
+            string.append(EMPTY);
+        } else {
+            string.append(piece);
+        }
+    }
+
 
     /**
      * Sets the board to the default starting board

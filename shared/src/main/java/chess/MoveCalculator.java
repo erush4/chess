@@ -8,15 +8,17 @@ public class MoveCalculator {
     private final HashSet<ChessMove> validMoves;
     private final ChessPosition start;
     private final ChessBoard board;
+    private final ChessMove lastMove;
 
 
-    public MoveCalculator(ChessBoard board, ChessPosition start) {
+    public MoveCalculator(ChessBoard board, ChessPosition start, ChessMove lastMove) {
         validMoves = new HashSet<>();
         this.board = board;
         ChessPiece piece = board.getPiece(start);
         ChessPiece.PieceType type = piece.getPieceType();
         this.start = start;
         color = piece.getTeamColor();
+        this.lastMove = lastMove;
 
         switch (type) {
             case KING:
@@ -107,6 +109,34 @@ public class MoveCalculator {
         }
     }
 
+    private void enPassantCalculator(int forwards) {
+        //check to make sure it's not first move
+        if (lastMove == null) {
+            return;
+        }
+        chess.ChessPosition lastMoveEndPosition = lastMove.getEndPosition();
+        int lastMoveRow = lastMoveEndPosition.getRow();
+        int lastMoveCol = lastMoveEndPosition.getColumn();
+        int pieceRow = start.getRow();
+        int pieceCol = start.getColumn();
+        //make sure the last move was a pawn
+        if (board.getPiece(lastMoveEndPosition).getPieceType() != ChessPiece.PieceType.PAWN) {
+            return;
+        }
+        //make sure it moved adjacent
+        if (lastMoveRow != pieceRow) {
+            return;
+        }
+        //make sure the pawn moved two squares
+        if (Math.abs(lastMoveRow - lastMove.getStartPosition().getRow()) != 2) {
+            return;
+        }
+        int side = lastMoveCol - pieceCol;
+        ChessMove enPassant = new ChessMove(start, new ChessPosition(pieceRow + forwards, pieceCol + side), null);
+        validMoves.add(enPassant);
+
+    }
+
     private void pawnMoveCalculator() {
         int forwards;
         int firstMove = switch (color) {
@@ -120,6 +150,8 @@ public class MoveCalculator {
             }
         };
         int newRow = start.getRow() + forwards;
+
+        //move forward
         ChessPosition newPosition = new ChessPosition(newRow, start.getColumn());
         if (board.getPiece(newPosition) == null) {
             pawnPromotionCheck(firstMove + 5 * forwards, newPosition);
@@ -130,6 +162,11 @@ public class MoveCalculator {
                 }
             }
         }
+
+        //en passant-able
+        enPassantCalculator(forwards);
+
+        //diagonal capture
         for (int i = -1; i <= 1; i += 2) {
             int newCol = start.getColumn() + i;
             if (!outOfBounds(newCol)) {

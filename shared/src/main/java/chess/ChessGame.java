@@ -66,7 +66,7 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece = board.getPiece(startPosition);
-        Collection<ChessMove> validMoves = piece.pieceMoves(board, startPosition);
+        Collection<ChessMove> validMoves = piece.pieceMoves(board, startPosition, lastMove);
         TeamColor color = piece.getTeamColor();
 
         for (Iterator<ChessMove> iterator = validMoves.iterator(); iterator.hasNext(); ) {
@@ -98,15 +98,24 @@ public class ChessGame {
         }
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece piece = board.getPiece(startPosition);
+        ChessPosition endPosition = move.getEndPosition();
         if (piece == null || piece.getTeamColor() != teamTurn) { //only move on your turn
             throw new InvalidMoveException();
         }
-        if (validMoves(startPosition).contains(move)) { //checks to make sure move is valid
-            if (move.getPromotionPiece() == null) { //normal move
-                board.addPiece(move.getEndPosition(), piece);
+        if (validMoves(startPosition).contains(move)) { //checks to make sure move is valid/
+            if (piece.getPieceType() == ChessPiece.PieceType.PAWN){ //en passant removes captured pawn
+                int startColumn = startPosition.getColumn();
+                int side = endPosition.getColumn() - startColumn;
+                if (side != 0 && board.getPiece(endPosition) == null) { //ignore non-en-passant moves
+                    ChessPosition capturePos = new ChessPosition(startPosition.getRow(), startColumn + side);
+                    board.addPiece(capturePos, null);
+                }
+            }
+            if (move.getPromotionPiece() == null) { //normal move, plus en passant
+                board.addPiece(endPosition, piece);
             } else { //pawn promotion
                 ChessPiece promotionPiece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
-                board.addPiece(move.getEndPosition(), promotionPiece);
+                board.addPiece(endPosition, promotionPiece);
             }
             board.addPiece(startPosition, null);
             teamTurn = switch (teamTurn) {
@@ -131,7 +140,7 @@ public class ChessGame {
                 ChessPosition newPosition = new ChessPosition(i, j); //gets every position on the board
                 ChessPiece piece = board.getPiece(newPosition);
                 if (piece != null && piece.getTeamColor() != teamColor) {
-                    if (threats(newPosition, teamColor)) {
+                    if (threatensKing(newPosition, teamColor)) {
                         return true;
                     }
                 }
@@ -140,8 +149,8 @@ public class ChessGame {
         return false;
     }
 
-    private boolean threats(ChessPosition newPosition, TeamColor teamColor) {
-        for (ChessMove threat : board.getPiece(newPosition).pieceMoves(board, newPosition)) {
+    private boolean threatensKing(ChessPosition newPosition, TeamColor teamColor) {
+        for (ChessMove threat : board.getPiece(newPosition).pieceMoves(board, newPosition, lastMove)) {
             ChessPiece possibleCapture = board.getPiece(threat.getEndPosition());
             boolean kingThreatened = possibleCapture != null && possibleCapture.getPieceType() == ChessPiece.PieceType.KING;
             if (kingThreatened && possibleCapture.getTeamColor() == teamColor) { //king threatened (same color)
@@ -162,19 +171,18 @@ public class ChessGame {
     }
 
     private boolean noMoves(TeamColor teamColor) {
-        boolean stalemate = true;
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <= 8; j++) {
                 ChessPosition newPosition = new ChessPosition(i, j);
                 ChessPiece piece = board.getPiece(newPosition);
                 if (piece != null && piece.getTeamColor() == teamColor) {
                     if (!validMoves(newPosition).isEmpty()) {
-                        stalemate = false;
+                        return false;
                     }
                 }
             }
         }
-        return stalemate;
+        return true;
     }
 
     /**
@@ -275,12 +283,7 @@ public class ChessGame {
         return string.toString();
     }
 
-    private boolean squareToString(StringBuilder string,
-                                   boolean isDark,
-                                   int row,
-                                   int col,
-                                   HashSet<ChessPosition> selectedSpaces,
-                                   ChessPosition startPosition) {
+    private boolean squareToString(StringBuilder string, boolean isDark, int row, int col, HashSet<ChessPosition> selectedSpaces, ChessPosition startPosition) {
         var location = new ChessPosition(row, col);
         String squareColor;
         if (location.equals(startPosition)) {
@@ -313,7 +316,6 @@ public class ChessGame {
      * Enum identifying the 2 possible teams in a chess game
      */
     public enum TeamColor {
-        WHITE,
-        BLACK
+        WHITE, BLACK
     }
 }
