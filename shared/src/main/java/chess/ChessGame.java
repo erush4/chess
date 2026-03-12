@@ -72,18 +72,65 @@ public class ChessGame {
         for (Iterator<ChessMove> iterator = validMoves.iterator(); iterator.hasNext(); ) {
             ChessMove move = iterator.next();
             ChessPosition endPosition = move.getEndPosition();
-            ChessPiece spaceCapture = board.getPiece(endPosition);
-            //tests the move
-            board.addPiece(startPosition, null);
-            board.addPiece(endPosition, piece);
-            if (isInCheck(color)) {
+
+            if (movesToCheck(startPosition, endPosition, piece, color)) {
                 iterator.remove();
             }
-            //reverts back
-            board.addPiece(startPosition, piece);
-            board.addPiece(endPosition, spaceCapture);
         }
+
+        if (piece.getPieceType() == ChessPiece.PieceType.KING && piece.hasNotMoved() && !isInCheck(color)) {
+            checkCastling(validMoves, color, startPosition, piece);
+        }
+
         return validMoves;
+    }
+
+    private boolean movesToCheck(ChessPosition startPosition, ChessPosition endPosition, ChessPiece piece, TeamColor color) {
+        boolean check = false;
+        ChessPiece spaceCapture = board.getPiece(endPosition);
+        //tests the move
+        board.addPiece(startPosition, null);
+        board.addPiece(endPosition, piece);
+        if (isInCheck(color)) {
+            check = true;
+        }
+        //reverts back
+        board.addPiece(startPosition, piece);
+        board.addPiece(endPosition, spaceCapture);
+        return check;
+    }
+
+    private void checkCastling(Collection<ChessMove> validMoves, TeamColor color, ChessPosition startPosition, ChessPiece piece) {
+        int row = startPosition.getRow();
+        ChessPiece queenRook = board.getPiece(row, 1);
+        ChessPiece kingRook = board.getPiece(row, 8);
+
+        ChessPosition position;
+        ChessPiece square;
+        if (queenRook != null && queenRook.hasNotMoved()) { //don't need to check if it's a rook, because then the piece has moved
+            position = new ChessPosition(row, 4);
+            square = board.getPiece(position);
+            if (square == null && !movesToCheck(startPosition, position, piece, color)) {
+                position = new ChessPosition(row, 3);
+                square = board.getPiece(position);
+                if (square == null && !movesToCheck(startPosition, position, piece, color)) {
+                    if (board.getPiece(row, 2) == null) {
+                        validMoves.add(new ChessMove(startPosition, position));
+                    }
+                }
+            }
+        }
+        if (kingRook != null && kingRook.hasNotMoved()) {
+            position = new ChessPosition(row, 6);
+            square = board.getPiece(position);
+            if (square == null && !movesToCheck(startPosition, position, piece, color)) {
+                position = new ChessPosition(row, 7);
+                square = board.getPiece(position);
+                if (square == null && !movesToCheck(startPosition, position, piece, color)) {
+                    validMoves.add(new ChessMove(startPosition, position));
+                }
+            }
+        }
     }
 
     /**
@@ -103,15 +150,41 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
         if (validMoves(startPosition).contains(move)) { //checks to make sure move is valid/
-            if (piece.getPieceType() == ChessPiece.PieceType.PAWN){ //en passant removes captured pawn
-                int startColumn = startPosition.getColumn();
-                int side = endPosition.getColumn() - startColumn;
-                if (side != 0 && board.getPiece(endPosition) == null) { //ignore non-en-passant moves
-                    ChessPosition capturePos = new ChessPosition(startPosition.getRow(), startColumn + side);
-                    board.addPiece(capturePos, null);
+            switch (piece.getPieceType()) {
+                case PAWN: { // remove en passant captured pawn
+                    int startColumn = startPosition.getColumn();
+                    int side = endPosition.getColumn() - startColumn;
+                    if (side != 0 && board.getPiece(endPosition) == null) { //ignore non-en-passant moves
+                        ChessPosition capturePos = new ChessPosition(startPosition.getRow(), startColumn + side);
+                        board.addPiece(capturePos, null);
+                    }
+                    break;
+                }
+                case KING: { // move rook for castling
+                    int kingStartRow = startPosition.getRow();
+                    int kingStartColumn = startPosition.getColumn();
+                    int kingEndColumn = endPosition.getColumn();
+                    int moveLength = kingEndColumn - kingStartColumn;
+                    if (Math.abs(moveLength) == 2){
+                        ChessPosition oldRookPos;
+                        ChessPosition newRookPos;
+                        if (moveLength > 0 ){
+                            oldRookPos = new ChessPosition(kingStartRow, 8);
+                            newRookPos = new ChessPosition(kingStartRow, kingEndColumn - 1);
+                        } else {
+                            oldRookPos = new ChessPosition(kingStartRow, 1);
+                            newRookPos = new ChessPosition(kingStartRow, kingEndColumn + 1);
+                        }
+                        ChessPiece rook = board.getPiece(oldRookPos);
+                        board.addPiece(oldRookPos, null);
+                        rook.setMoved();
+                        board.addPiece(newRookPos, rook);
+
+                    }
                 }
             }
-            if (move.getPromotionPiece() == null) { //normal move, plus en passant
+            if (move.getPromotionPiece() == null) { //move piece to end location
+                piece.setMoved();
                 board.addPiece(endPosition, piece);
             } else { //pawn promotion
                 ChessPiece promotionPiece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());

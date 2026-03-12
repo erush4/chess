@@ -14,10 +14,20 @@ import static ui.EscapeSequences.*;
 public class ChessPiece {
     private final PieceType type;
     private final ChessGame.TeamColor color;
+    private boolean moved;
+
+    public void setMoved() {
+        this.moved = true;
+    }
+
+    public boolean hasNotMoved(){
+        return !this.moved;
+    }
 
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         color = pieceColor;
         this.type = type;
+        this.moved = false;
     }
 
     @Override

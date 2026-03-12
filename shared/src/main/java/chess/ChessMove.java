@@ -18,7 +18,12 @@ public class ChessMove {
         start = startPosition;
         end = endPosition;
         promotion = promotionPiece;
+    }
 
+    public ChessMove(ChessPosition startPosition, ChessPosition endPosition){
+        start= startPosition;
+        end = endPosition;
+        promotion = null;
     }
 
     @Override

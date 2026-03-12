@@ -53,6 +53,10 @@ public class ChessBoard {
         return board[position.getRow() - 1][position.getColumn() - 1];
     }
 
+    public ChessPiece getPiece(int row, int col){
+        return board[row - 1][col - 1];
+    }
+
     @Override
     public String toString() {
         StringBuilder printStringBuild = new StringBuilder();
